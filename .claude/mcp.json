@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "/root/.local/bin/uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/mnt/d/Workspace/serenamentec"
+      ]
+    }
+  }
+}
