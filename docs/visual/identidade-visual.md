@@ -589,3 +589,4 @@ Ao criar novos componentes, verificar:
 **Versão:** 1.0  
 **Criado para:** Serenamente - App de Saúde Mental
 
+

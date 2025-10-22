@@ -837,3 +837,4 @@ const breakpoints = {
 **Autor:** Equipe Serenamente  
 **Status:** Aprovado para implementação
 
+

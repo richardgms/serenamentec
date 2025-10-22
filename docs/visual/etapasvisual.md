@@ -718,3 +718,4 @@ Checklist:
 
 **Use este guia sequencialmente, uma etapa por vez, testando após cada implementação!**
 
+
