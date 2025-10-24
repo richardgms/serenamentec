@@ -50,10 +50,10 @@ export default function Step2Diagnosis({ setValue, watch }: Step2Props) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="mb-2 text-2xl font-bold text-gray-800">
+        <h2 className="mb-2 text-2xl font-bold text-text-primary">
           Como você se identifica?
         </h2>
-        <p className="text-gray-600">
+        <p className="text-text-secondary">
           Isso nos ajuda a personalizar o conteúdo para você
         </p>
       </div>
@@ -64,17 +64,21 @@ export default function Step2Diagnosis({ setValue, watch }: Step2Props) {
           <Card
             key={option.value}
             onClick={() => handleSelect(option.value)}
-            className={`cursor-pointer transition-all ${
-              selectedValue === option.value
-                ? 'border-2 border-primary bg-secondary/20 shadow-md'
-                : 'border border-gray-200 hover:border-primary/50'
-            }`}
+            className="cursor-pointer transition-all"
+            style={{
+              border: selectedValue === option.value
+                ? '2px solid var(--primary)'
+                : '2px solid var(--border-light)',
+              backgroundColor: selectedValue === option.value
+                ? 'rgba(125, 211, 192, 0.1)'
+                : 'var(--surface-card)'
+            }}
           >
             <div className="flex items-center gap-4">
               <div className="text-3xl">{option.emoji}</div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-800">{option.label}</h3>
-                <p className="text-sm text-gray-600">{option.description}</p>
+                <h3 className="font-semibold text-text-primary">{option.label}</h3>
+                <p className="text-sm text-text-secondary">{option.description}</p>
               </div>
               {selectedValue === option.value && (
                 <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center">
@@ -101,14 +105,14 @@ export default function Step2Diagnosis({ setValue, watch }: Step2Props) {
         <button
           type="button"
           onClick={handleSkip}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-smooth underline"
+          className="text-sm text-text-tertiary hover:text-text-secondary transition-smooth underline"
         >
           Prefiro não informar agora
         </button>
       </div>
 
       {/* Helper Text */}
-      <div className="rounded-lg bg-surface p-4 text-sm text-gray-600">
+      <div className="rounded-lg p-4 text-sm" style={{ backgroundColor: 'var(--surface-card)', color: 'var(--text-secondary)' }}>
         <p>
           💚 <strong>Essa informação é privada</strong> e será usada apenas para
           personalizar sua experiência. Você pode alterá-la a qualquer momento nas

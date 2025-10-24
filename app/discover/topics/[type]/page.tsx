@@ -3,9 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Loader2, Check } from 'lucide-react';
+import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/ui/Spinner';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { ResonateButtons } from '@/components/discover/ResonateButtons';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Check } from '@/lib/constants/icons';
 import { getTopicInfo, type TopicType, type ResonateAnswer } from '@/lib/utils/topicHelpers';
 
 interface TopicContent {
@@ -20,6 +27,7 @@ interface TopicExploration {
   resonates?: ResonateAnswer | null;
   notes?: string | null;
   bookmarked?: boolean;
+  exploredAt?: Date | string | null;
 }
 
 export default function TopicDetailPage() {
@@ -107,164 +115,158 @@ export default function TopicDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-          <p className="text-sm text-gray-600">Carregando tópico...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
 
   if (error || !content) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Conteúdo não encontrado'}</p>
-          <button
-            onClick={() => router.push('/discover/topics')}
-            className="text-primary font-medium"
-          >
-            Voltar para tópicos
-          </button>
-        </div>
+      <div className="min-h-screen">
+        <Header />
+        <PageTransition>
+          <div className="max-w-[428px] mx-auto px-4 py-20 text-center">
+            <p className="mb-4" style={{ color: 'var(--error)' }}>{error || 'Conteúdo não encontrado'}</p>
+            <Button onClick={() => router.push('/discover/topics')}>
+              Voltar para tópicos
+            </Button>
+          </div>
+        </PageTransition>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => router.push('/discover/topics')}
-          className="tap-highlight-none"
-          aria-label="Voltar"
-        >
-          <ArrowLeft className="h-6 w-6 text-gray-700" />
-        </button>
-        <div className="flex items-center gap-2 flex-1">
-          <span className="text-3xl">{topicInfo.emoji}</span>
-          <h1 className="text-xl font-bold text-gray-800">{content.title}</h1>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      <Header />
+      <main>
+      <PageTransition>
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Conhecer-se', href: '/discover' },
+              { label: 'Tópicos', href: '/discover/topics' },
+              { label: content.title },
+            ]}
+          />
 
-      {/* Content Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card className={`bg-gradient-to-br ${topicInfo.gradient} mb-4`}>
-          {/* Description */}
-          <div className="prose prose-sm max-w-none">
-            {content.description.split('\n\n').map((paragraph, idx) => (
-              <p key={idx} className="text-gray-700 mb-3 last:mb-0">
-                {paragraph}
-              </p>
-            ))}
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">{topicInfo.emoji}</span>
+            <h1 className="text-xl font-bold text-text-primary">{content.title}</h1>
           </div>
 
-          {/* Examples */}
-          {content.examples && content.examples.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-semibold text-gray-800 mb-3">
-                Exemplos práticos:
-              </h3>
-              <ul className="space-y-2">
-                {content.examples.map((example, idx) => (
-                  <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span className="flex-1">{example}</span>
-                  </li>
+          {/* Content Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className={`bg-gradient-to-br ${topicInfo.gradient}`}>
+              {/* Description */}
+              <div className="prose prose-sm max-w-none">
+                {content.description.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx} className="text-text-primary mb-3 last:mb-0">
+                    {paragraph}
+                  </p>
                 ))}
-              </ul>
-            </div>
+              </div>
+
+              {/* Examples */}
+              {content.examples && content.examples.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-text-primary mb-3">
+                    Exemplos práticos:
+                  </h3>
+                  <ul className="space-y-2">
+                    {content.examples.map((example, idx) => (
+                      <li key={idx} className="text-sm text-text-primary flex items-start gap-2">
+                        <span className="text-primary mt-0.5">•</span>
+                        <span className="flex-1">{example}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* Resonate Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card>
+              <ResonateButtons
+                selected={resonateAnswer}
+                onSelect={setResonateAnswer}
+                disabled={saving}
+              />
+            </Card>
+          </motion.div>
+
+          {/* Notes */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card>
+              <label className="block text-sm font-medium text-text-primary mb-2">
+                Suas reflexões pessoais (opcional)
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Anote aqui suas reflexões, dúvidas ou insights..."
+                className="w-full min-h-[120px] p-3 border border-border-subtle rounded-lg resize-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface-card text-text-primary"
+                disabled={saving}
+              />
+            </Card>
+          </motion.div>
+
+          {/* Save Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              variant={saved ? "primary" : "primary"}
+              fullWidth
+              isLoading={saving}
+              className={saved ? "bg-success hover:bg-success" : ""}
+            >
+              {saved ? (
+                <>
+                  <OptimizedIcon icon={Check} size={20} />
+                  Salvo!
+                </>
+              ) : (
+                'Salvar exploração'
+              )}
+            </Button>
+          </motion.div>
+
+          {/* Exploration status */}
+          {exploration && !saved && exploration.exploredAt && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center text-xs text-text-tertiary"
+            >
+              Explorado pela primeira vez em{' '}
+              {new Date(exploration.exploredAt).toLocaleDateString('pt-BR')}
+            </motion.p>
           )}
-        </Card>
-      </motion.div>
-
-      {/* Resonate Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card className="mb-4">
-          <ResonateButtons
-            selected={resonateAnswer}
-            onSelect={setResonateAnswer}
-            disabled={saving}
-          />
-        </Card>
-      </motion.div>
-
-      {/* Notes */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Suas reflexões pessoais (opcional)
-          </label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Anote aqui suas reflexões, dúvidas ou insights..."
-            className="w-full min-h-[120px] p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            disabled={saving}
-          />
-        </Card>
-      </motion.div>
-
-      {/* Save Button */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`
-            w-full py-3 px-4 rounded-lg font-medium transition-all
-            flex items-center justify-center gap-2
-            ${
-              saved
-                ? 'bg-green-500 text-white'
-                : 'bg-primary text-white hover:bg-primary/90'
-            }
-            disabled:opacity-50 disabled:cursor-not-allowed
-          `}
-        >
-          {saving ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Salvando...
-            </>
-          ) : saved ? (
-            <>
-              <Check className="h-5 w-5" />
-              Salvo!
-            </>
-          ) : (
-            'Salvar exploração'
-          )}
-        </button>
-      </motion.div>
-
-      {/* Exploration status */}
-      {exploration && !saved && exploration.exploredAt && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center text-xs text-gray-500 mt-3"
-        >
-          Explorado pela primeira vez em{' '}
-          {new Date(exploration.exploredAt).toLocaleDateString('pt-BR')}
-        </motion.p>
-      )}
+        </div>
+      </PageTransition>
+      </main>
     </div>
   );
 }

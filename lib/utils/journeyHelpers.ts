@@ -3,8 +3,6 @@
  * Helpers for working with self-discovery journeys
  */
 
-import { Brain, Focus, Sparkles } from 'lucide-react';
-
 export type JourneyType = 'AM_I_AUTISTIC' | 'UNDERSTANDING_ADHD' | 'SENSORY_PROCESSING';
 
 export interface JourneyInfo {
@@ -46,7 +44,7 @@ export const journeyInfo: Record<JourneyType, JourneyInfo> = {
     totalSteps: 12,
     emoji: '✨',
     color: '#EFFFEA',
-    gradient: 'from-surface/60 to-surface/20',
+    gradient: 'from-[var(--surface-card)]/60 to-[var(--surface-card)]/20',
   },
 };
 
@@ -72,15 +70,30 @@ export function getAllJourneyTypes(): JourneyType[] {
 }
 
 /**
- * Get journey icon component
+ * Get journey icon name (for server-side usage)
+ */
+export function getJourneyIconName(type: JourneyType): string {
+  const iconNames = {
+    AM_I_AUTISTIC: 'Brain',
+    UNDERSTANDING_ADHD: 'Target',
+    SENSORY_PROCESSING: 'Sparkle',
+  };
+  return iconNames[type];
+}
+
+/**
+ * Get journey icon component (for client-side usage only)
+ * @deprecated Use getJourneyIconName and import icons where needed
  */
 export function getJourneyIcon(type: JourneyType) {
-  const icons = {
-    AM_I_AUTISTIC: Brain,
-    UNDERSTANDING_ADHD: Focus,
-    SENSORY_PROCESSING: Sparkles,
+  // This function is deprecated to avoid SSR issues
+  // Import icons dynamically to avoid SSR issues
+  const iconNames = {
+    AM_I_AUTISTIC: 'Brain',
+    UNDERSTANDING_ADHD: 'Target',
+    SENSORY_PROCESSING: 'Sparkle',
   };
-  return icons[type];
+  return iconNames[type];
 }
 
 /**

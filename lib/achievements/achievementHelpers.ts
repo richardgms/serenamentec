@@ -62,7 +62,7 @@ export const achievementInfo: Record<AchievementType, AchievementInfo> = {
     description: 'Respondeu 10 reflexões diárias',
     emoji: '✍️',
     color: '#EFFFEA',
-    gradient: 'from-surface/60 to-surface/20',
+    gradient: 'from-[var(--surface-card)]/60 to-[var(--surface-card)]/20',
     requirement: 10,
     category: 'reflection',
   },

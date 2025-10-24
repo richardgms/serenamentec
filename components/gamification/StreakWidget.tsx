@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Trophy, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Fire, Trophy, CircleNotch } from '@/lib/constants/icons';
 import { useUIStore } from '@/lib/store/uiStore';
 
 interface StreakData {
@@ -96,7 +97,7 @@ export function StreakWidget() {
     return (
       <Card className="mb-4">
         <div className="flex items-center justify-center py-4">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <OptimizedIcon icon={CircleNotch} size={20} weight="bold" className="animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -142,14 +143,14 @@ export function StreakWidget() {
               {/* Streak text */}
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Flame className="h-4 w-4" style={{ color: streakData.color }} />
-                  <p className="text-sm font-medium text-gray-700">Sequência Atual</p>
+                  <OptimizedIcon icon={Fire} size={16} weight="duotone" style={{ color: streakData.color }} />
+                  <p className="text-sm font-medium text-text-secondary">Sequência Atual</p>
                 </div>
                 <motion.p
                   key={streakData.currentStreak}
                   initial={{ scale: 1.2 }}
                   animate={{ scale: 1 }}
-                  className="text-2xl font-bold text-gray-900"
+                  className="text-2xl font-bold text-text-primary"
                 >
                   {streakData.streakText}
                 </motion.p>
@@ -157,8 +158,8 @@ export function StreakWidget() {
                 {/* Longest streak */}
                 {streakData.longestStreak > streakData.currentStreak && (
                   <div className="flex items-center gap-1 mt-1">
-                    <Trophy className="h-3 w-3 text-yellow-500" />
-                    <p className="text-xs text-gray-600">
+                    <OptimizedIcon icon={Trophy} size={12} weight="bold" className="text-yellow-500" />
+                    <p className="text-xs text-text-secondary">
                       Recorde: {streakData.longestStreak} {streakData.longestStreak === 1 ? 'dia' : 'dias'}
                     </p>
                   </div>
@@ -180,14 +181,14 @@ export function StreakWidget() {
                   }}
                 >
                   {checkingIn ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <OptimizedIcon icon={CircleNotch} size={20} weight="bold" className="animate-spin" />
                   ) : (
                     'Check-in'
                   )}
                 </motion.button>
               ) : (
                 <div className="px-4 py-2 rounded-lg bg-gray-100 text-center">
-                  <p className="text-xs font-semibold text-gray-500">
+                  <p className="text-xs font-semibold text-text-tertiary">
                     ✓ Feito hoje!
                   </p>
                 </div>
@@ -202,7 +203,7 @@ export function StreakWidget() {
               animate={{ opacity: 1, height: 'auto' }}
               className="mt-3 pt-3 border-t border-gray-200"
             >
-              <p className="text-xs text-gray-600 flex items-center gap-1">
+              <p className="text-xs text-text-secondary flex items-center gap-1">
                 <span>💙</span>
                 Você usou seu dia de descanso. Continue amanhã!
               </p>

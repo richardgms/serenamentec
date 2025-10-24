@@ -9,7 +9,7 @@ export type HapticIntensity = 'light' | 'medium' | 'heavy';
 export type HapticPattern = 'success' | 'warning' | 'error' | 'selection';
 
 // Padrões de vibração (em milissegundos)
-const VIBRATION_PATTERNS = {
+const VIBRATION_PATTERNS: Record<HapticIntensity | HapticPattern, number | number[]> = {
   light: 10,
   medium: 20,
   heavy: 30,
@@ -17,7 +17,7 @@ const VIBRATION_PATTERNS = {
   warning: [20, 100, 20],
   error: [30, 100, 30, 100, 30],
   selection: 10,
-} as const;
+};
 
 /**
  * Verifica se o dispositivo suporta vibração

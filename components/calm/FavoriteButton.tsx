@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Loader2 } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Heart, CircleNotch } from '@/lib/constants/icons';
 import { useUIStore } from '@/lib/store/uiStore';
 
 interface FavoriteButtonProps {
@@ -103,16 +104,16 @@ export function FavoriteButton({
       aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
     >
       {isLoading ? (
-        <Loader2 className="h-6 w-6 animate-spin" />
+        <OptimizedIcon icon={CircleNotch} size={24} weight="bold" className="animate-spin" />
       ) : (
         <motion.div
           animate={isFavorite ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <Heart
-            className="h-6 w-6"
-            fill={isFavorite ? 'currentColor' : 'none'}
-            strokeWidth={2}
+          <OptimizedIcon
+            icon={Heart}
+            size={24}
+            weight={isFavorite ? 'fill' : 'regular'}
           />
         </motion.div>
       )}

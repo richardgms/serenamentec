@@ -1,112 +1,146 @@
-'use client';
+'use client'
 
-import { ReactNode, ButtonHTMLAttributes, MouseEvent } from 'react';
-import { motion } from 'framer-motion';
-import { LucideIcon, Loader2 } from 'lucide-react';
-import { useHaptic } from '@/lib/hooks/useHaptic';
-import { buttonTapVariants } from '@/lib/animations/variants';
+import { forwardRef, ButtonHTMLAttributes, MouseEvent, useState, useCallback } from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { clsx } from 'clsx'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
-  fullWidth?: boolean;
-  loading?: boolean;
-  loadingText?: string;
-  leftIcon?: LucideIcon;
-  rightIcon?: LucideIcon;
-  enableHaptic?: boolean;
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-gradient-to-br from-primary to-primary-dark text-white shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 active:scale-98',
+        secondary: 'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 active:scale-98',
+        outline: 'border-2 border-primary text-primary bg-white dark:bg-[var(--surface-card)] hover:bg-primary hover:text-white active:scale-98',
+        ghost: 'text-text-secondary hover:bg-primary/5 active:scale-98',
+        danger: 'bg-error text-white shadow-soft-md hover:shadow-soft-lg hover:-translate-y-0.5 active:scale-98',
+      },
+      size: {
+        sm: 'h-8 px-4 text-sm',
+        md: 'h-10 px-6 text-base',
+        lg: 'h-12 px-8 text-lg',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+)
+
+interface Ripple {
+  x: number
+  y: number
+  size: number
+  id: number
 }
 
-export function Button({
-  children,
-  variant = 'primary',
-  size = 'md',
-  fullWidth = false,
-  loading = false,
-  loadingText,
-  leftIcon: LeftIcon,
-  rightIcon: RightIcon,
-  enableHaptic = true,
-  className = '',
-  disabled = false,
-  onClick,
-  ...props
-}: ButtonProps) {
-  const { selection } = useHaptic();
-
-  const baseStyles =
-    'relative inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-200 tap-highlight-none focus-ring disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
-
-  const variants = {
-    primary:
-      'bg-primary text-white hover:bg-primary/90 active:bg-primary/80 shadow-sm hover:shadow-md',
-    secondary:
-      'bg-secondary text-gray-800 hover:bg-secondary/90 active:bg-secondary/80 shadow-sm hover:shadow-md',
-    outline:
-      'border-2 border-primary text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20',
-    ghost:
-      'text-primary bg-transparent hover:bg-primary/10 active:bg-primary/20',
-    danger:
-      'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 shadow-sm hover:shadow-md',
-  };
-
-  const sizes = {
-    sm: 'px-4 py-2 text-sm min-h-[36px]',
-    md: 'px-6 py-3 text-base min-h-[44px]',
-    lg: 'px-8 py-4 text-lg min-h-[52px]',
-  };
-
-  const iconSizes = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6',
-  };
-
-  const widthStyle = fullWidth ? 'w-full' : '';
-  const isDisabled = disabled || loading;
-
-  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-    if (isDisabled) return;
-
-    // Haptic feedback
-    if (enableHaptic) {
-      selection();
-    }
-
-    // Call onClick handler
-    if (onClick) {
-      onClick(e);
-    }
-  };
-
-  return (
-    <motion.button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthStyle} ${className}`}
-      disabled={isDisabled}
-      onClick={handleClick}
-      whileTap={!isDisabled ? buttonTapVariants.tap : undefined}
-      {...props}
-    >
-      {/* Loading spinner */}
-      {loading && (
-        <Loader2 className={`${iconSizes[size]} animate-spin`} />
-      )}
-
-      {/* Left icon */}
-      {!loading && LeftIcon && (
-        <LeftIcon className={iconSizes[size]} />
-      )}
-
-      {/* Content */}
-      <span className={loading ? 'opacity-70' : ''}>
-        {loading && loadingText ? loadingText : children}
-      </span>
-
-      {/* Right icon */}
-      {!loading && RightIcon && (
-        <RightIcon className={iconSizes[size]} />
-      )}
-    </motion.button>
-  );
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+  isLoading?: boolean
+  fullWidth?: boolean
+  enableRipple?: boolean
+  enableHaptic?: boolean
 }
+
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({
+    className,
+    variant,
+    size,
+    isLoading,
+    fullWidth,
+    children,
+    disabled,
+    enableRipple = true,
+    enableHaptic = true,
+    onClick,
+    ...props
+  }, ref) => {
+    const [ripples, setRipples] = useState<Ripple[]>([])
+
+    const createRipple = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+      const button = event.currentTarget
+      const rect = button.getBoundingClientRect()
+      const size = Math.max(rect.width, rect.height)
+      const x = event.clientX - rect.left - size / 2
+      const y = event.clientY - rect.top - size / 2
+
+      const newRipple: Ripple = {
+        x,
+        y,
+        size,
+        id: Date.now(),
+      }
+
+      setRipples((prev) => [...prev, newRipple])
+
+      // Remove ripple after animation
+      setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id))
+      }, 600)
+    }, [])
+
+    const handleClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+      // Haptic feedback
+      if (enableHaptic && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(10) // 10ms vibration
+      }
+
+      // Ripple effect
+      if (enableRipple && !disabled && !isLoading) {
+        createRipple(event)
+      }
+
+      // Call original onClick
+      onClick?.(event)
+    }, [enableHaptic, enableRipple, disabled, isLoading, createRipple, onClick])
+
+    return (
+      <button
+        className={clsx(
+          buttonVariants({ variant, size }),
+          fullWidth && 'w-full',
+          'relative overflow-hidden',
+          className
+        )}
+        ref={ref}
+        disabled={disabled || isLoading}
+        onClick={handleClick}
+        {...props}
+      >
+        {/* Button content */}
+        <span className="relative z-10">
+          {isLoading ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="force-animation animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+              Carregando...
+            </span>
+          ) : (
+            children
+          )}
+        </span>
+
+        {/* Ripple effects */}
+        {enableRipple && ripples.map((ripple) => (
+          <span
+            key={ripple.id}
+            className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
+            style={{
+              left: ripple.x,
+              top: ripple.y,
+              width: ripple.size,
+              height: ripple.size,
+            }}
+          />
+        ))}
+      </button>
+    )
+  }
+)
+
+Button.displayName = 'Button'
+
+export { Button, buttonVariants }

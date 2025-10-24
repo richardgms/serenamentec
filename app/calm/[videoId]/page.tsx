@@ -4,11 +4,17 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
 import { useUIStore } from '@/lib/store/uiStore';
+import { logger } from '@/lib/utils/logger';
 import { FavoriteButton } from '@/components/calm/FavoriteButton';
 import { getYouTubeEmbedUrl } from '@/lib/utils/youtube';
 import { Card } from '@/components/ui/Card';
-import { Repeat, Loader2, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { ArrowLeft } from '@/lib/constants/icons';
 
 interface VideoData {
   id: string;
@@ -81,7 +87,7 @@ export default function VideoPlayerPage() {
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading video:', error);
+        logger.error('Failed to load video details', error, 'VideoPlayerPage');
         setIsLoading(false);
       }
     };
@@ -101,161 +107,166 @@ export default function VideoPlayerPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
 
   if (!video) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <Header />
-        <div className="mobile-container px-4 py-20 text-center">
-          <p className="text-gray-600 mb-4">Vídeo não encontrado</p>
-          <button
-            onClick={() => router.back()}
-            className="text-primary hover:underline"
-          >
-            Voltar
-          </button>
-        </div>
+        <PageTransition>
+          <div className="max-w-[428px] mx-auto px-4 py-20 text-center">
+            <p className="text-text-secondary mb-4">Vídeo não encontrado</p>
+            <Button variant="ghost" onClick={() => router.back()}>
+              Voltar
+            </Button>
+          </div>
+        </PageTransition>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
 
-      <div className="mobile-container px-4 py-6">
-        {/* Video Player */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Card className="overflow-hidden p-0">
-            <div className="relative aspect-video bg-black">
-              <iframe
-                src={embedUrl}
-                title={video.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
+      <main>
+      <PageTransition>
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Acalmar', href: '/calm' },
+              { label: video.title },
+            ]}
+          />
+
+          {/* Video Player 16:9 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="overflow-hidden p-0">
+              <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                <iframe
+                  src={embedUrl}
+                  title={video.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute top-0 left-0 w-full h-full"
+                  style={{ border: 'none' }}
+                />
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Video Info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-xl font-bold text-text-primary mb-2">
+                  {video.title}
+                </h1>
+                {video.description && (
+                  <p className="text-sm text-text-secondary leading-relaxed">
+                    {video.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Favorite Button */}
+              <FavoriteButton
+                videoId={video.videoId}
+                videoTitle={video.title}
+                videoUrl={video.url}
+                category={video.category || 'VISUAL_CALMING'}
+                thumbnail={video.thumbnail}
+                isFavorite={isFavorite}
+                onToggle={handleFavoriteToggle}
               />
             </div>
-          </Card>
-        </motion.div>
+          </motion.div>
 
-        {/* Video Info */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mb-6"
-        >
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-800 mb-2">
-                {video.title}
-              </h1>
-              {video.description && (
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {video.description}
-                </p>
-              )}
-            </div>
+          {/* Controls */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card>
+              <h3 className="font-semibold text-text-primary mb-3">Controles</h3>
 
-            {/* Favorite Button */}
-            <FavoriteButton
-              videoId={video.videoId}
-              videoTitle={video.title}
-              videoUrl={video.url}
-              category={video.category || 'VISUAL_CALMING'}
-              thumbnail={video.thumbnail}
-              isFavorite={isFavorite}
-              onToggle={handleFavoriteToggle}
-            />
-          </div>
-        </motion.div>
-
-        {/* Controls */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mb-6"
-        >
-          <Card>
-            <h3 className="font-semibold text-gray-800 mb-3">Controles</h3>
-
-            {/* Loop Toggle */}
-            <button
-              onClick={() => setIsLooping(!isLooping)}
-              className={`
-                w-full flex items-center justify-between p-3 rounded-lg
-                transition-all tap-highlight-none
-                ${
-                  isLooping
-                    ? 'bg-primary/10 border-2 border-primary'
-                    : 'bg-gray-50 border-2 border-transparent'
-                }
-              `}
-            >
-              <div className="flex items-center gap-3">
-                <Repeat
-                  className={`h-5 w-5 ${
-                    isLooping ? 'text-primary' : 'text-gray-600'
-                  }`}
-                />
+              {/* Loop Toggle */}
+              <button
+                onClick={() => setIsLooping(!isLooping)}
+                className={`
+                  w-full flex items-center justify-between p-3 rounded-lg
+                  transition-all duration-150
+                  ${
+                    isLooping
+                      ? 'bg-primary/10 border-2 border-primary'
+                      : 'bg-surface-elevated border-2 border-transparent'
+                  }
+                `}
+              >
                 <span
                   className={`font-medium ${
-                    isLooping ? 'text-primary' : 'text-gray-700'
+                    isLooping ? 'text-primary' : 'text-text-primary'
                   }`}
                 >
                   Repetir vídeo
                 </span>
-              </div>
 
-              <div
-                className={`
-                  w-12 h-6 rounded-full transition-all
-                  ${isLooping ? 'bg-primary' : 'bg-gray-300'}
-                `}
-              >
+                {/* Toggle Switch */}
                 <div
                   className={`
-                    w-5 h-5 rounded-full bg-white mt-0.5 transition-all
-                    ${isLooping ? 'ml-6' : 'ml-0.5'}
+                    w-12 h-6 rounded-full transition-all duration-150
+                    ${isLooping ? 'bg-primary' : 'bg-border-subtle'}
                   `}
-                />
-              </div>
-            </button>
+                >
+                  <div
+                    className={`
+                      w-5 h-5 rounded-full bg-white mt-0.5 transition-all duration-150 shadow-soft-sm
+                      ${isLooping ? 'ml-6' : 'ml-0.5'}
+                    `}
+                  />
+                </div>
+              </button>
 
-            <p className="text-xs text-gray-500 mt-3">
-              {isLooping
-                ? 'O vídeo será reproduzido continuamente'
-                : 'Ative para repetir o vídeo automaticamente'}
-            </p>
-          </Card>
-        </motion.div>
+              <p className="text-xs text-text-tertiary mt-3">
+                {isLooping
+                  ? 'O vídeo será reproduzido continuamente'
+                  : 'Ative para repetir o vídeo automaticamente'}
+              </p>
+            </Card>
+          </motion.div>
 
-        {/* Back Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-primary hover:underline"
+          {/* Back Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar para lista de vídeos
-          </button>
-        </motion.div>
-      </div>
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <OptimizedIcon icon={ArrowLeft} size={16} />
+              Voltar para lista de vídeos
+            </Button>
+          </motion.div>
+        </div>
+      </PageTransition>
+      </main>
     </div>
   );
 }

@@ -16,7 +16,10 @@ import {
 import Step1PersonalInfo from '@/components/onboarding/Step1PersonalInfo';
 import Step2Diagnosis from '@/components/onboarding/Step2Diagnosis';
 import { Button } from '@/components/ui/Button';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { logger } from '@/lib/utils/logger';
+import { ArrowLeft, ArrowRight } from '@/lib/constants/icons';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -84,7 +87,7 @@ export default function OnboardingPage() {
       // Redirect to home
       router.push('/home');
     } catch (error) {
-      console.error('Error submitting onboarding:', error);
+      logger.error('Onboarding submission failed', error, 'OnboardingPage');
       alert('Erro ao salvar seus dados. Por favor, tente novamente.');
       setIsSubmitting(false);
     }
@@ -103,19 +106,22 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="mobile-container min-h-screen px-6 py-8">
+    <main className="max-w-[428px] mx-auto min-h-screen px-6 py-8">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-600">
+          <span className="text-sm font-medium text-text-secondary">
             Passo {currentStep} de 2
           </span>
-          <span className="text-sm text-gray-500">{currentStep === 1 ? '50%' : '100%'}</span>
+          <span className="text-sm text-text-tertiary">{currentStep === 1 ? '50%' : '100%'}</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-gray-200">
+        <div className="h-2 w-full rounded-full" style={{ backgroundColor: 'rgba(125, 211, 192, 0.2)' }}>
           <div
-            className="h-full rounded-full bg-primary transition-all duration-300"
-            style={{ width: `${(currentStep / 2) * 100}%` }}
+            className="h-full rounded-full transition-all duration-300"
+            style={{
+              width: `${(currentStep / 2) * 100}%`,
+              backgroundColor: 'var(--primary)'
+            }}
           />
         </div>
       </div>
@@ -147,7 +153,7 @@ export default function OnboardingPage() {
               <div className="mt-8">
                 <Button type="submit" variant="primary" className="w-full">
                   Próximo
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <OptimizedIcon icon={ArrowRight} size={20} className="ml-2" />
                 </Button>
               </div>
             </form>
@@ -180,7 +186,7 @@ export default function OnboardingPage() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      <Spinner size="sm" className="mr-2 border-white" />
                       Finalizando...
                     </>
                   ) : (
@@ -195,7 +201,7 @@ export default function OnboardingPage() {
                   onClick={handleBack}
                   disabled={isSubmitting}
                 >
-                  <ArrowLeft className="mr-2 h-5 w-5" />
+                  <OptimizedIcon icon={ArrowLeft} size={20} className="mr-2" />
                   Voltar
                 </Button>
               </div>
@@ -203,6 +209,6 @@ export default function OnboardingPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 }

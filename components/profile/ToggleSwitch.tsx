@@ -20,20 +20,25 @@ export function ToggleSwitch({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onToggle(!checked)}
-      className={`flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 transition-smooth tap-highlight-none touch-feedback ${
+      className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 transition-smooth tap-highlight-none touch-feedback focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
         disabled ? 'opacity-60' : 'hover:border-primary/60'
       }`}
+      style={{
+        border: '2px solid var(--border-light)',
+        backgroundColor: 'var(--surface-card)'
+      }}
     >
       <div className="text-left">
-        <p className="text-sm font-medium text-gray-800">{label}</p>
+        <p className="text-sm font-medium text-text-primary">{label}</p>
         {description && (
-          <p className="mt-1 text-xs text-gray-500">{description}</p>
+          <p className="mt-1 text-xs text-text-tertiary">{description}</p>
         )}
       </div>
       <div
-        className={`relative h-6 w-11 rounded-full transition-colors ${
-          checked ? 'bg-primary' : 'bg-gray-300'
-        }`}
+        className="relative h-6 w-11 rounded-full transition-colors"
+        style={{
+          backgroundColor: checked ? 'var(--primary)' : 'var(--border-medium)'
+        }}
       >
         <span
           className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white shadow transition-transform ${

@@ -1,12 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { useUIStore } from '@/lib/store/uiStore';
-import { Sparkles, Lock, Loader2 } from 'lucide-react';
+import { Sparkle, LockKey, CircleNotch } from '@/lib/constants/icons';
 import { formatAchievementDate } from '@/lib/achievements/achievementHelpers';
 
 interface UnlockedAchievement {
@@ -45,7 +50,8 @@ interface AchievementsData {
 }
 
 export default function AchievementsPage() {
-  const { setPageTitle, setShowBackButton } = useUIStore();
+  const router = useRouter();
+  const { setPageTitle, setShowBackButton, showToast } = useUIStore();
   const [data, setData] = useState<AchievementsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,35 +61,42 @@ export default function AchievementsPage() {
     setShowBackButton(true);
   }, [setPageTitle, setShowBackButton]);
 
-  useEffect(() => {
-    async function fetchAchievements() {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/achievements');
+  const fetchAchievements = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/achievements');
 
-        if (!response.ok) {
-          throw new Error('Erro ao carregar conquistas');
-        }
-
-        const achievementsData = await response.json();
-        setData(achievementsData);
-      } catch (err) {
-        console.error('Error fetching achievements:', err);
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error('Erro ao carregar conquistas');
       }
-    }
 
+      const achievementsData = await response.json();
+      setData(achievementsData);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching achievements:', err);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAchievements();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleRefresh = async () => {
+    await fetchAchievements();
+    showToast('Conquistas atualizadas', 'success');
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-10">
+      <div className="min-h-screen bg-[var(--surface-main)] pb-10">
         <Header />
         <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <OptimizedIcon icon={CircleNotch} size={32} weight="bold" className="animate-spin text-primary" />
         </div>
       </div>
     );
@@ -91,7 +104,7 @@ export default function AchievementsPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background pb-10">
+      <div className="min-h-screen bg-[var(--surface-main)] pb-10">
         <Header />
         <PageTransition>
           <div className="mobile-container px-4 py-6">
@@ -105,10 +118,21 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6 space-y-6">
+        <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+          <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Conquistas' },
+            ]}
+          />
+
           {/* Stats Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -117,8 +141,8 @@ export default function AchievementsPage() {
             <Card className="bg-gradient-to-br from-primary/10 to-secondary/10">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <h2 className="font-semibold text-gray-800">Seu Progresso</h2>
+                  <OptimizedIcon icon={Sparkle} size={20} weight="duotone" className="text-primary" />
+                  <h2 className="font-semibold text-text-primary">Seu Progresso</h2>
                 </div>
                 <span className="text-2xl font-bold text-primary">
                   {data.stats.unlocked}/{data.stats.total}
@@ -134,7 +158,7 @@ export default function AchievementsPage() {
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-secondary rounded-full"
                 />
               </div>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-text-secondary mt-2">
                 {data.stats.percentage}% das conquistas desbloqueadas
               </p>
             </Card>
@@ -143,7 +167,7 @@ export default function AchievementsPage() {
           {/* Unlocked Achievements */}
           {data.unlocked.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 px-1">
+              <h3 className="text-sm font-semibold text-text-secondary mb-3 px-1">
                 Desbloqueadas ({data.unlocked.length})
               </h3>
               <div className="space-y-3">
@@ -165,18 +189,21 @@ export default function AchievementsPage() {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-gray-900">
+                            <h4 className="font-bold text-text-primary">
                               {achievement.title}
                             </h4>
-                            <Sparkles
-                              className="h-4 w-4 flex-shrink-0"
+                            <OptimizedIcon
+                              icon={Sparkle}
+                              size={16}
+                              weight="fill"
+                              className="flex-shrink-0"
                               style={{ color: achievement.color }}
                             />
                           </div>
-                          <p className="text-sm text-gray-700 mb-2">
+                          <p className="text-sm text-text-secondary mb-2">
                             {achievement.description}
                           </p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-text-secondary">
                             Desbloqueada em{' '}
                             {formatAchievementDate(new Date(achievement.unlockedAt))}
                           </p>
@@ -192,7 +219,7 @@ export default function AchievementsPage() {
           {/* Locked Achievements */}
           {data.locked.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3 px-1">
+              <h3 className="text-sm font-semibold text-text-secondary mb-3 px-1">
                 Bloqueadas ({data.locked.length})
               </h3>
               <div className="space-y-3">
@@ -211,18 +238,18 @@ export default function AchievementsPage() {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-bold text-gray-700">
+                            <h4 className="font-bold text-text-secondary">
                               {achievement.title}
                             </h4>
-                            <Lock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <OptimizedIcon icon={LockKey} size={16} weight="duotone" className="text-gray-400 flex-shrink-0" />
                           </div>
-                          <p className="text-sm text-gray-600 mb-3">
+                          <p className="text-sm text-text-secondary mb-3">
                             {achievement.description}
                           </p>
 
                           {/* Progress */}
                           <div>
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                            <div className="flex items-center justify-between text-xs text-text-secondary mb-1">
                               <span>Progresso</span>
                               <span>
                                 {achievement.progress} / {achievement.required}
@@ -246,15 +273,20 @@ export default function AchievementsPage() {
 
           {/* Empty State */}
           {data.unlocked.length === 0 && data.locked.length === 0 && (
-            <Card className="text-center py-8">
-              <Sparkles className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-              <p className="text-gray-600">
-                Nenhuma conquista disponível no momento
-              </p>
-            </Card>
+            <EmptyState
+              context="achievements"
+              actionLabel="Explorar jornadas"
+              onAction={() => {
+                showToast('Escolha uma jornada para desbloquear conquistas ✨', 'info')
+                setTimeout(() => router.push('/discover/journeys'), 200)
+              }}
+              className="py-12"
+            />
           )}
-        </div>
+          </div>
+        </PullToRefresh>
       </PageTransition>
+      </main>
     </div>
   );
 }

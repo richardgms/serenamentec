@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Toast } from '@/components/ui/Toast';
 import { AchievementNotifier } from '@/components/gamification/AchievementNotifier';
 import { InstallPrompt } from '@/components/pwa/InstallPrompt';
 import { Hydration } from '@/components/Hydration';
+import { ThemeProvider } from '@/lib/design/theme';
 import { generateMetadata, homeMetadata } from '@/lib/seo/metadata';
 import {
   organizationSchema,
@@ -11,6 +13,13 @@ import {
   generateStructuredData,
 } from '@/lib/seo/structuredData';
 import './globals.css';
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
 
 export const metadata: Metadata = generateMetadata(homeMetadata);
 
@@ -30,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="pt-BR">
+      <html lang="pt-BR" className={jakarta.variable}>
         <head>
           {/* Structured Data - Organization */}
           <script
@@ -45,12 +54,16 @@ export default function RootLayout({
         </head>
         <body className="font-sans antialiased" suppressHydrationWarning>
           <Hydration />
-          <div className="min-h-screen bg-background">
-            {children}
-            <Toast />
-            <AchievementNotifier />
-            <InstallPrompt />
-          </div>
+          <ThemeProvider>
+            <div className="flex min-h-screen flex-col">
+              <div className="mobile-wrapper flex flex-col flex-1">
+                {children}
+              </div>
+              <Toast />
+              <AchievementNotifier />
+              <InstallPrompt />
+            </div>
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

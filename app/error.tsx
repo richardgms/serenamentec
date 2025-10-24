@@ -25,7 +25,7 @@ export default function Error({
   const appError = handleError(error);
 
   return (
-    <div className="mobile-container min-h-screen flex items-center justify-center bg-background">
+    <main className="mobile-container min-h-screen flex items-center justify-center bg-[var(--surface-main)]">
       <ErrorDisplay
         type={appError.type}
         message={appError.message}
@@ -33,6 +33,6 @@ export default function Error({
         onGoHome={() => (window.location.href = '/home')}
         showHomeButton={!appError.retry}
       />
-    </div>
+    </main>
   );
 }

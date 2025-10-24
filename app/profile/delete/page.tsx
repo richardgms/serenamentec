@@ -3,12 +3,30 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { Loader2, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { CircleNotch, ShieldWarning, WarningCircle } from '@/lib/constants/icons';
 import { useUIStore } from '@/lib/store/uiStore';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 export default function DeleteAccountPage() {
   const router = useRouter();
@@ -67,36 +85,55 @@ export default function DeleteAccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6 space-y-6">
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Excluir conta' },
+            ]}
+          />
+
           {error && (
-            <Card className="border border-red-200 bg-red-50 text-sm text-red-600">
+            <Card className="text-sm" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-bg)', color: 'var(--error)' }}>
               {error}
             </Card>
           )}
 
-          <Card className="space-y-4 border border-red-200 bg-red-50">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-bg)' }}>
             <div className="flex items-start gap-3">
-              <div className="rounded-full bg-red-100 p-3">
-                <ShieldAlert className="h-6 w-6 text-red-600" />
+              <div className="rounded-full p-3" style={{ backgroundColor: 'var(--error-bg)' }}>
+                <OptimizedIcon icon={ShieldWarning} size={24} weight="duotone" style={{ color: 'var(--error)' }} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-red-700">
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--error)' }}>
                   Exclusao permanente
                 </h2>
-                <p className="mt-2 text-sm text-red-600 leading-relaxed">
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--error)' }}>
                   Esta acao remove todos os seus dados: historico de crises,
                   conquistas, preferencias e progresso. Nao ha como recuperar
                   apos confirmar.
                 </p>
               </div>
             </div>
-          </Card>
+              </Card>
+            </motion.div>
 
-          <Card className="space-y-4">
-            <label className="flex items-start gap-3 text-sm text-gray-700">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
+            <label className="flex items-start gap-3 text-sm text-text-secondary">
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -110,7 +147,7 @@ export default function DeleteAccountPage() {
               </span>
             </label>
 
-            <div className="space-y-2 text-sm text-gray-700">
+            <div className="space-y-2 text-sm text-text-secondary">
               <p>Digite <strong>EXCLUIR</strong> para confirmar:</p>
               <input
                 type="text"
@@ -119,54 +156,66 @@ export default function DeleteAccountPage() {
                   setConfirmationText(event.target.value.toUpperCase())
                 }
                 placeholder="EXCLUIR"
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                 disabled={isDeleting || isDeleted}
               />
             </div>
-          </Card>
+              </Card>
+            </motion.div>
 
-          <Card className="space-y-3 bg-surface">
-            <div className="flex items-start gap-3 text-sm text-gray-600">
-              <AlertTriangle className="mt-[2px] h-4 w-4 text-orange-500" />
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-3 bg-[var(--surface-card)]">
+            <div className="flex items-start gap-3 text-sm text-text-secondary">
+              <OptimizedIcon icon={WarningCircle} size={16} weight="duotone" className="mt-[2px] text-orange-500" />
               <p>
                 Se mudar de ideia depois, sera preciso criar um novo cadastro. Suas
                 jornadas recomeçam do zero.
               </p>
             </div>
-          </Card>
+              </Card>
+            </motion.div>
 
-          <Button
+            <motion.div variants={itemVariants}>
+              <Button
             variant="primary"
-            className="w-full bg-red-500 hover:bg-red-600"
+            className="w-full"
+            style={{ backgroundColor: 'var(--error)', borderColor: 'var(--error)' }}
             onClick={handleDelete}
             disabled={!canDelete || isDeleting || isDeleted}
           >
             {isDeleting ? (
               <span className="flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <OptimizedIcon icon={CircleNotch} size={16} weight="bold" className="animate-spin" />
                 Excluindo...
               </span>
             ) : (
               'Excluir permanentemente'
             )}
-          </Button>
+              </Button>
+            </motion.div>
 
-          {isDeleted && (
-            <Card className="border border-primary/40 bg-primary/10 text-center text-sm text-primary">
-              Sentiremos sua falta. Esperamos que volte quando estiver pronto.
-            </Card>
-          )}
+            {isDeleted && (
+              <motion.div variants={itemVariants}>
+                <Card className="border border-primary/40 bg-primary/10 text-center text-sm text-primary">
+                  Sentiremos sua falta. Esperamos que volte quando estiver pronto.
+                </Card>
+              </motion.div>
+            )}
 
-          <Button
+            <motion.div variants={itemVariants}>
+              <Button
             variant="outline"
-            className="w-full border-gray-200 text-gray-600 hover:bg-gray-100"
+            className="w-full border-gray-200 text-text-secondary hover:bg-gray-100"
             onClick={() => router.back()}
             disabled={isDeleting}
           >
             Cancelar
-          </Button>
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </PageTransition>
+      </main>
     </div>
   );
 }

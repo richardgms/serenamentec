@@ -3,12 +3,13 @@
  * Erro específico para problemas de conexão
  */
 
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { WifiOff, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { emptyStateVariants } from '@/lib/animations/variants';
+import { motion, useReducedMotion } from 'framer-motion'
+import { Button } from '@/components/ui/Button'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { ArrowClockwise, WifiSlash } from '@/lib/constants/icons'
+import { emptyStateVariants, floatingAnimation } from '@/lib/animations/variants'
 
 export interface NetworkErrorProps {
   onRetry?: () => void;
@@ -17,7 +18,8 @@ export interface NetworkErrorProps {
 
 export function NetworkError({ onRetry, message }: NetworkErrorProps) {
   const defaultMessage =
-    'Parece que você está sem conexão. Verifique sua internet e tente novamente.';
+    'Parece que você está sem conexão. Verifique sua internet e tente novamente.'
+  const shouldReduceMotion = useReducedMotion()
 
   return (
     <motion.div
@@ -25,30 +27,32 @@ export function NetworkError({ onRetry, message }: NetworkErrorProps) {
       initial="hidden"
       animate="visible"
       className="flex flex-col items-center justify-center text-center px-6 py-12"
+      role="alert"
+      aria-live="assertive"
     >
       {/* Animated WiFi Icon */}
       <motion.div
-        animate={{
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
         className="mb-6"
+        {...(!shouldReduceMotion && {
+          variants: floatingAnimation,
+          animate: 'animate'
+        })}
       >
-        <div className="relative">
-          <div className="absolute inset-0 bg-gray-200 rounded-full blur-xl" />
-          <WifiOff className="relative h-20 w-20 text-gray-400" />
-        </div>
+        <span className="relative grid h-24 w-24 place-items-center rounded-[28px] bg-[rgba(245,180,97,0.2)] shadow-soft-xl">
+          <OptimizedIcon
+            icon={WifiSlash}
+            size={48}
+            weight="duotone"
+            color="#F5B461"
+          />
+        </span>
       </motion.div>
 
       {/* Title */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-3">Sem Conexão</h2>
+      <h2 className="text-2xl font-bold text-text-primary mb-3">Sem Conexão</h2>
 
       {/* Message */}
-      <p className="text-gray-600 mb-8 max-w-sm leading-relaxed">
+      <p className="text-text-secondary mb-8 max-w-sm leading-relaxed">
         {message || defaultMessage}
       </p>
 
@@ -59,22 +63,22 @@ export function NetworkError({ onRetry, message }: NetworkErrorProps) {
           variant="primary"
           className="flex items-center gap-2"
         >
-          <RefreshCw className="h-4 w-4" />
+          <OptimizedIcon icon={ArrowClockwise} size={18} weight="bold" />
           Tentar Novamente
         </Button>
       )}
 
       {/* Tips */}
-      <div className="mt-8 text-left bg-gray-50 rounded-lg p-4 max-w-sm">
-        <p className="text-xs font-semibold text-gray-700 mb-2">
-          💡 Dicas para resolver:
+      <div className="mt-8 max-w-sm rounded-2xl border border-[rgba(245,180,97,0.25)] bg-[rgba(245,180,97,0.12)] p-4 text-left">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-text-secondary">
+          💡 Como recuperar a conexão
         </p>
-        <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
-          <li>Verifique se o Wi-Fi ou dados móveis estão ligados</li>
-          <li>Tente desligar e ligar o modo avião</li>
-          <li>Aproxime-se do roteador Wi-Fi</li>
+        <ul className="space-y-1 text-xs text-text-secondary">
+          <li>Verifique se o Wi-Fi ou os dados móveis estão ativados.</li>
+          <li>Experimente desligar e ligar o modo avião.</li>
+          <li>Aproxime-se do roteador ou tente reconectar à rede.</li>
         </ul>
       </div>
     </motion.div>
-  );
+  )
 }

@@ -3,9 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { logger } from '@/lib/utils/logger';
 import { JourneyCard } from '@/components/discover/JourneyCard';
 import { getAllJourneyTypes, type JourneyType } from '@/lib/utils/journeyHelpers';
-import { ArrowLeft, Loader2 } from 'lucide-react';
 
 interface JourneyProgress {
   journeyType: JourneyType;
@@ -34,22 +40,24 @@ export default function JourneysPage() {
 
         // Ensure we have all 3 journeys, even if not started yet
         const allJourneyTypes = getAllJourneyTypes();
-        const journeysMap = new Map(
+        const journeysMap = new Map<JourneyType, JourneyProgress>(
           data.journeys.map((j: JourneyProgress) => [j.journeyType, j])
         );
 
-        const fullJourneys = allJourneyTypes.map((type) =>
-          journeysMap.get(type) || {
+        const fullJourneys = allJourneyTypes.map((type): JourneyProgress => {
+          const existing = journeysMap.get(type);
+          if (existing) return existing;
+          return {
             journeyType: type,
             currentStep: 1,
             completedSteps: [],
             completed: false,
-          }
-        );
+          };
+        });
 
         setJourneys(fullJourneys);
       } catch (err) {
-        console.error('Error fetching journeys:', err);
+        logger.error('Failed to fetch journeys', err, 'JourneysPage');
         setError(err instanceof Error ? err.message : 'Erro desconhecido');
       } finally {
         setLoading(false);
@@ -66,77 +74,91 @@ export default function JourneysPage() {
 
   if (loading) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-          <p className="text-sm text-gray-600">Carregando jornadas...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="text-primary font-medium"
-          >
-            Tentar novamente
-          </button>
-        </div>
+      <div className="min-h-screen">
+        <Header />
+        <PageTransition>
+          <div className="max-w-[428px] mx-auto px-4 py-20 text-center">
+            <p className="text-error mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Tentar novamente
+            </Button>
+          </div>
+        </PageTransition>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          onClick={() => router.push('/discover')}
-          className="tap-highlight-none"
-          aria-label="Voltar"
-        >
-          <ArrowLeft className="h-6 w-6 text-gray-700" />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Jornadas</h1>
-          <p className="text-sm text-gray-600">Trilhas guiadas de autoconhecimento</p>
-        </div>
-      </div>
+    <div className="min-h-screen">
+      <Header />
 
-      {/* Info Box */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-primary/10 rounded-lg p-4 mb-6"
-      >
-        <p className="text-sm text-gray-700">
-          Cada jornada te guia por tópicos específicos com perguntas reflexivas.
-          Avance no seu ritmo e volte sempre que quiser.
-        </p>
-      </motion.div>
+      <main>
+      <PageTransition>
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Conhecer-se', href: '/discover' },
+              { label: 'Jornadas' },
+            ]}
+          />
 
-      {/* Journey Cards */}
-      <div className="space-y-4">
-        {journeys.map((journey, index) => (
+          {/* Header */}
           <motion.div
-            key={journey.journeyType}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
+            className="text-center"
           >
-            <JourneyCard
-              journeyType={journey.journeyType}
-              completedSteps={journey.completedSteps}
-              onClick={() => handleJourneyClick(journey)}
-            />
+            <h1 className="text-2xl font-bold text-text-primary mb-2">
+              Jornadas 🗺️
+            </h1>
+            <p className="text-sm text-text-secondary">
+              Trilhas guiadas de autoconhecimento
+            </p>
           </motion.div>
-        ))}
-      </div>
+
+          {/* Info Box */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card variant="glass" className="text-center">
+              <p className="text-sm text-text-primary leading-relaxed">
+                Cada jornada te guia por tópicos específicos com perguntas reflexivas.
+                Avance no seu ritmo e volte sempre que quiser.
+              </p>
+            </Card>
+          </motion.div>
+
+          {/* Journey Cards */}
+          <div className="space-y-4">
+            {journeys.map((journey, index) => (
+              <motion.div
+                key={journey.journeyType}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <JourneyCard
+                  journeyType={journey.journeyType}
+                  completedSteps={journey.completedSteps}
+                  onClick={() => handleJourneyClick(journey)}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </PageTransition>
+      </main>
     </div>
   );
 }

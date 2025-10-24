@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Loader2, Save, Play } from 'lucide-react';
+import { Spinner } from '@/components/ui/Spinner';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Play, FloppyDisk, CircleNotch } from '@/lib/constants/icons';
 import { calculateTotalCycleDuration } from '@/lib/utils/breathingPatterns';
 
 const PHASE_LABELS = {
@@ -15,6 +18,21 @@ const PHASE_LABELS = {
   hold: { label: 'Segure', emoji: '⏸️', color: 'yellow' },
   exhale: { label: 'Expire', emoji: '💨', color: 'green' },
   pause: { label: 'Pausa', emoji: '⏳', color: 'gray' },
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
 };
 
 export default function CustomBreathingPage() {
@@ -107,37 +125,46 @@ export default function CustomBreathingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[var(--surface-main)] flex items-center justify-center">
+        <Spinner size="lg" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-20">
       <Header />
 
-      <div className="mobile-container px-4 py-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 text-center"
-        >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Configure Seu Padrão
-          </h1>
-          <p className="text-sm text-gray-600">
-            Ajuste os tempos de cada fase da respiração
-          </p>
-        </motion.div>
+      <main>
+      <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/home' },
+            { label: 'Respiração', href: '/breathe' },
+            { label: 'Personalizar' },
+          ]}
+        />
 
-        {/* Preview Circle */}
+        {/* Content */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="space-y-6"
         >
+          {/* Header */}
+          <motion.div variants={itemVariants} className="text-center">
+            <h1 className="text-2xl font-bold text-text-primary mb-2">
+              Configure Seu Padrão
+            </h1>
+            <p className="text-sm text-text-secondary">
+              Ajuste os tempos de cada fase da respiração
+            </p>
+          </motion.div>
+
+          {/* Preview Circle */}
+          <motion.div variants={itemVariants}>
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
             <div className="flex flex-col items-center justify-center py-8">
               <AnimatePresence mode="wait">
@@ -152,7 +179,7 @@ export default function CustomBreathingPage() {
                   <span className="text-6xl mb-4 block">
                     {PHASE_LABELS[previewPhase].emoji}
                   </span>
-                  <h3 className="text-xl font-semibold text-gray-800">
+                  <h3 className="text-xl font-semibold text-text-primary">
                     {PHASE_LABELS[previewPhase].label}
                   </h3>
                   <p className="text-3xl font-bold text-primary mt-2">
@@ -162,21 +189,16 @@ export default function CustomBreathingPage() {
               </AnimatePresence>
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-text-secondary">
                   Duração do ciclo: <strong>{cycleDuration}s</strong>
                 </p>
               </div>
             </div>
           </Card>
-        </motion.div>
+          </motion.div>
 
-        {/* Sliders */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="space-y-6"
-        >
+          {/* Sliders */}
+          <motion.div variants={itemVariants} className="space-y-6">
           {Object.entries(times).map(([phase, value]) => {
             const phaseKey = phase as keyof typeof times;
             const phaseInfo = PHASE_LABELS[phaseKey];
@@ -191,7 +213,7 @@ export default function CustomBreathingPage() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{phaseInfo.emoji}</span>
-                    <h4 className="font-semibold text-gray-800">
+                    <h4 className="font-semibold text-text-primary">
                       {phaseInfo.label}
                     </h4>
                   </div>
@@ -217,7 +239,7 @@ export default function CustomBreathingPage() {
                   }}
                 />
 
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-text-tertiary mt-1">
                   <span>1s</span>
                   <span>10s</span>
                 </div>
@@ -245,15 +267,11 @@ export default function CustomBreathingPage() {
               Remover Pausa
             </Button>
           )}
+          </motion.div>
         </motion.div>
 
         {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="fixed bottom-0 left-0 right-0 bg-background border-t border-gray-200 p-4"
-        >
+        <div className="fixed bottom-0 left-0 right-0 bg-[var(--surface-main)] border-t border-[var(--border-subtle)] p-4">
           <div className="mobile-container flex gap-3">
             <Button
               variant="secondary"
@@ -263,12 +281,12 @@ export default function CustomBreathingPage() {
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <OptimizedIcon icon={CircleNotch} size={20} weight="bold" className="mr-2 animate-spin" />
                   Salvando...
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-5 w-5" />
+                  <OptimizedIcon icon={FloppyDisk} size={20} weight="duotone" className="mr-2" />
                   Salvar
                 </>
               )}
@@ -282,19 +300,20 @@ export default function CustomBreathingPage() {
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  <OptimizedIcon icon={CircleNotch} size={20} weight="bold" className="mr-2 animate-spin" />
                   Iniciando...
                 </>
               ) : (
                 <>
-                  <Play className="mr-2 h-5 w-5" />
+                  <OptimizedIcon icon={Play} size={20} weight="duotone" className="mr-2" />
                   Começar
                 </>
               )}
             </Button>
           </div>
-        </motion.div>
+        </div>
       </div>
+      </main>
     </div>
   );
 }

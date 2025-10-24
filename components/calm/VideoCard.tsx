@@ -1,17 +1,22 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/Card';
-import { getYouTubeThumbnail, formatVideoDuration } from '@/lib/utils/youtube';
-import { Play, Clock } from 'lucide-react';
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { OptimizedImage } from '@/components/ui/OptimizedImage'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { Play } from '@/lib/constants/icons'
+import { getYouTubeThumbnail, formatVideoDuration } from '@/lib/utils/youtube'
 
 export interface VideoCardProps {
-  videoId: string;
-  title: string;
-  description?: string;
-  thumbnail?: string;
-  duration?: number; // in seconds
-  onClick: () => void;
+  videoId: string
+  title: string
+  description?: string
+  thumbnail?: string
+  duration?: number // in seconds
+  onClick?: () => void
 }
 
 export function VideoCard({
@@ -22,53 +27,83 @@ export function VideoCard({
   duration,
   onClick,
 }: VideoCardProps) {
-  const thumbnailUrl = thumbnail || getYouTubeThumbnail(videoId, 'hq');
+  const [isHovered, setIsHovered] = useState(false)
+  const router = useRouter()
+  const thumbnailUrl = thumbnail || getYouTubeThumbnail(videoId, 'hq')
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    } else {
+      router.push(`/calm/${videoId}`)
+    }
+  }
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 300 }}
+    <Card
+      padding="none"
+      clickable
+      hover="scale"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleClick}
+      className="overflow-hidden cursor-pointer"
     >
-      <Card
-        onClick={onClick}
-        className="overflow-hidden p-0 cursor-pointer hover:shadow-lg transition-shadow"
-      >
-        {/* Thumbnail */}
-        <div className="relative aspect-video bg-gray-200 overflow-hidden">
-          <img
-            src={thumbnailUrl}
-            alt={title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+      {/* Thumbnail */}
+      <div className="relative aspect-video bg-gray-100 overflow-hidden">
+        <img
+          src={thumbnailUrl}
+          alt={title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
 
-          {/* Play overlay */}
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-            <div className="bg-white/90 rounded-full p-3">
-              <Play className="h-6 w-6 text-primary fill-primary" />
-            </div>
-          </div>
+        {/* Overlay on Hover - Enhanced Glass Effect */}
+        <motion.div
+          initial={false}
+          animate={{
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          className="absolute inset-0 bg-primary/30 backdrop-blur-md flex items-center justify-center"
+        >
+          <motion.div
+            animate={{
+              scale: isHovered ? 1.1 : 1,
+            }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="bg-white/90 rounded-full p-4 shadow-soft-lg"
+          >
+            <OptimizedIcon
+              icon={Play}
+              size={32}
+              className="text-primary"
+              weight="fill"
+            />
+          </motion.div>
+        </motion.div>
 
-          {/* Duration badge */}
-          {duration && (
-            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+        {/* Duration Badge */}
+        {duration && (
+          <div className="absolute bottom-2 right-2">
+            <Badge size="sm" className="bg-black/70 text-white border-0">
               {formatVideoDuration(duration)}
-            </div>
-          )}
-        </div>
+            </Badge>
+          </div>
+        )}
+      </div>
 
-        {/* Content */}
-        <div className="p-4">
-          <h3 className="font-semibold text-gray-800 line-clamp-2 mb-1">
-            {title}
-          </h3>
-          {description && (
-            <p className="text-sm text-gray-600 line-clamp-2">{description}</p>
-          )}
-        </div>
-      </Card>
-    </motion.div>
-  );
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-text-primary line-clamp-2 mb-1">
+          {title}
+        </h3>
+        {description && (
+          <p className="text-sm text-text-secondary line-clamp-2">
+            {description}
+          </p>
+        )}
+      </div>
+    </Card>
+  )
 }

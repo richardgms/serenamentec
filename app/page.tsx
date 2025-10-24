@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Heart, Sparkle } from '@/lib/constants/icons';
 
 export default function WelcomePage() {
   return (
-    <div className="mobile-container flex min-h-screen flex-col items-center justify-center px-6">
+    <main className="mobile-container flex min-h-screen flex-col items-center justify-center px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -21,8 +22,8 @@ export default function WelcomePage() {
           className="mb-6 flex justify-center"
         >
           <div className="relative">
-            <Heart className="h-16 w-16 text-primary fill-primary" />
-            <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-secondary" />
+            <OptimizedIcon icon={Heart} size={64} weight="fill" className="text-primary" />
+            <OptimizedIcon icon={Sparkle} size={24} weight="duotone" className="absolute -top-2 -right-2 text-secondary" />
           </div>
         </motion.div>
 
@@ -39,7 +40,7 @@ export default function WelcomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mb-8 text-lg text-gray-600"
+          className="mb-8 text-lg text-text-secondary"
         >
           Seu espaço de acolhimento e autoconhecimento
         </motion.p>
@@ -69,11 +70,11 @@ export default function WelcomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="mt-8 text-sm text-gray-500"
+          className="mt-8 text-sm text-text-tertiary"
         >
           Feito com 💚 para pessoas neurodivergentes
         </motion.p>
       </motion.div>
-    </div>
+    </main>
   );
 }

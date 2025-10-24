@@ -3,13 +3,21 @@
  * Componente genérico para exibir erros
  */
 
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { emptyStateVariants } from '@/lib/animations/variants';
-import type { ErrorType } from '@/lib/utils/errorHandler';
+import { useMemo } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Button } from '@/components/ui/Button'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { colors } from '@/docs/visual/design-tokens'
+import {
+  ArrowClockwise,
+  House,
+  WarningCircle,
+  WifiSlash
+} from '@/lib/constants/icons'
+import { emptyStateVariants, floatingAnimation } from '@/lib/animations/variants'
+import type { ErrorType } from '@/lib/utils/errorHandler'
 
 export interface ErrorDisplayProps {
   type?: ErrorType;
@@ -41,12 +49,49 @@ export function ErrorDisplay({
   };
 
   const displayTitle = title || defaultTitles[type];
+  const shouldReduceMotion = useReducedMotion()
+
+  const accent = useMemo(() => {
+    const base = {
+      color: colors.system.error,
+      background: 'rgba(255, 139, 148, 0.18)',
+      icon: WarningCircle,
+    }
+
+    if (type === 'network') {
+      return {
+        color: colors.system.warning,
+        background: 'rgba(245, 180, 97, 0.2)',
+        icon: WifiSlash,
+      }
+    }
+
+    if (type === 'validation') {
+      return {
+        color: colors.system.warning,
+        background: 'rgba(245, 180, 97, 0.18)',
+        icon: WarningCircle,
+      }
+    }
+
+    if (type === 'authorization' || type === 'authentication') {
+      return {
+        color: colors.system.info,
+        background: 'rgba(125, 211, 192, 0.22)',
+        icon: WarningCircle,
+      }
+    }
+
+    return base
+  }, [type])
 
   return (
     <motion.div
       variants={emptyStateVariants}
       initial="hidden"
       animate="visible"
+      role="alert"
+      aria-live="assertive"
       className={`
         flex flex-col items-center justify-center
         text-center px-6 py-12
@@ -55,27 +100,33 @@ export function ErrorDisplay({
     >
       {/* Icon */}
       <motion.div
-        animate={{
-          scale: [1, 1.05, 1],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
         className="mb-6"
+        {...(!shouldReduceMotion && {
+          variants: floatingAnimation,
+          animate: 'animate'
+        })}
       >
-        <div className="relative">
-          <div className="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-50" />
-          <AlertCircle className="relative h-16 w-16 text-red-400" />
-        </div>
+        <span
+          className="relative grid h-20 w-20 place-items-center rounded-2xl"
+          style={{
+            background: accent.background,
+            boxShadow: `0 18px 48px ${accent.color}40`
+          }}
+        >
+          <OptimizedIcon
+            icon={accent.icon}
+            size={40}
+            weight="duotone"
+            color={accent.color}
+          />
+        </span>
       </motion.div>
 
       {/* Title */}
-      <h2 className="text-xl font-bold text-gray-800 mb-3">{displayTitle}</h2>
+      <h2 className="text-xl font-bold text-text-primary mb-3">{displayTitle}</h2>
 
       {/* Message */}
-      <p className="text-gray-600 mb-6 max-w-md leading-relaxed">{message}</p>
+      <p className="text-text-secondary mb-6 max-w-md leading-relaxed">{message}</p>
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
@@ -86,7 +137,7 @@ export function ErrorDisplay({
             fullWidth
             className="flex items-center justify-center gap-2"
           >
-            <RefreshCw className="h-4 w-4" />
+            <OptimizedIcon icon={ArrowClockwise} size={18} weight="bold" />
             Tentar Novamente
           </Button>
         )}
@@ -98,7 +149,7 @@ export function ErrorDisplay({
             fullWidth
             className="flex items-center justify-center gap-2"
           >
-            <Home className="h-4 w-4" />
+            <OptimizedIcon icon={House} size={18} weight="regular" />
             Voltar ao Início
           </Button>
         )}
@@ -106,8 +157,8 @@ export function ErrorDisplay({
 
       {/* Helper text */}
       {type === 'network' && (
-        <p className="text-xs text-gray-400 mt-6">
-          💡 Verifique se você está conectado à internet
+        <p className="mt-6 max-w-sm text-xs leading-relaxed text-text-tertiary">
+          💡 Verifique sua conexão de internet ou tente reativar o Wi-Fi para continuar.
         </p>
       )}
     </motion.div>

@@ -29,7 +29,7 @@ export const breathingPatterns: Record<string, BreathingPattern> = {
       exhale: 8,
     },
     type: 'ANXIETY_478',
-    gradient: 'from-blue-400 to-blue-600',
+    gradient: 'from-[#5DADE2] to-[#3498DB]',
   },
   BALANCE_4444: {
     id: 'balance-4444',
@@ -44,7 +44,7 @@ export const breathingPatterns: Record<string, BreathingPattern> = {
       pause: 4,
     },
     type: 'BALANCE_4444',
-    gradient: 'from-green-400 to-green-600',
+    gradient: 'from-[#7DD3C0] to-[#58B09C]',
   },
   SLEEP_466: {
     id: 'sleep-466',
@@ -58,7 +58,7 @@ export const breathingPatterns: Record<string, BreathingPattern> = {
       exhale: 6,
     },
     type: 'SLEEP_466',
-    gradient: 'from-purple-400 to-purple-600',
+    gradient: 'from-[#A29BFE] to-[#6C5CE7]',
   },
 };
 

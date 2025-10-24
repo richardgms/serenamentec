@@ -1,125 +1,98 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { BreathingPhase, getPhaseLabel, getPhaseColor } from '@/lib/utils/breathingPatterns';
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { useHaptic } from '@/lib/hooks/useHaptic'
+import { BreathingPhase } from '@/lib/utils/breathingPatterns'
+import { colors } from '@/docs/visual/design-tokens'
 
 interface BreathingCircleProps {
-  phase: BreathingPhase;
-  timeRemaining: number;
-  totalTime: number;
+  phase: BreathingPhase
+  timeRemaining: number
+  totalTime: number
 }
 
-export function BreathingCircle({
-  phase,
-  timeRemaining,
-  totalTime,
-}: BreathingCircleProps) {
+const phaseColors = {
+  inhale: colors.primary.main,
+  hold: colors.accent.aqua,
+  exhale: colors.primary.light,
+  pause: colors.accent.calm,
+}
+
+const phaseLabels = {
+  inhale: 'Inspire',
+  hold: 'Segure',
+  exhale: 'Expire',
+  pause: 'Descanse',
+}
+
+export function BreathingCircle({ phase, timeRemaining, totalTime }: BreathingCircleProps) {
+  const { impact } = useHaptic()
+  const [prevPhase, setPrevPhase] = useState(phase)
+
+  useEffect(() => {
+    if (prevPhase !== phase) {
+      impact('light')
+      setPrevPhase(phase)
+    }
+  }, [phase, prevPhase, impact])
+
   // Calculate scale based on phase
-  const getScale = () => {
-    switch (phase) {
-      case 'inhale':
-        return 1.5; // Expand
-      case 'hold':
-        return 1.5; // Stay expanded
-      case 'exhale':
-        return 0.5; // Contract
-      case 'pause':
-        return 0.5; // Stay contracted
-      default:
-        return 1;
-    }
-  };
-
-  // Get background gradient based on phase
-  const getGradient = () => {
-    switch (phase) {
-      case 'inhale':
-        return 'from-blue-400 to-blue-600';
-      case 'hold':
-        return 'from-yellow-400 to-yellow-600';
-      case 'exhale':
-        return 'from-green-400 to-green-600';
-      case 'pause':
-        return 'from-gray-400 to-gray-600';
-      default:
-        return 'from-primary to-primary/80';
-    }
-  };
-
-  const scale = getScale();
-  const gradient = getGradient();
-  const phaseLabel = getPhaseLabel(phase);
-  const phaseColorClass = getPhaseColor(phase);
+  const scale = 
+    phase === 'inhale' ? 1.15 : 
+    phase === 'exhale' ? 0.85 : 
+    1.0 // hold and pause stay at normal size
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px]">
-      {/* Phase Label */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center"
-      >
-        <h2 className={`text-4xl font-bold ${phaseColorClass} mb-2`}>
-          {phaseLabel}
-        </h2>
-        <p className="text-gray-600">
-          Respire com o círculo
-        </p>
-      </motion.div>
+    <div className="flex flex-col items-center justify-center relative w-full">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full bg-primary blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 rounded-full bg-accent-aqua blur-3xl" />
+      </div>
 
       {/* Breathing Circle */}
-      <div className="relative flex items-center justify-center">
-        {/* Outer glow ring */}
-        <motion.div
-          className={`absolute rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-xl`}
-          animate={{
-            scale: [scale * 0.8, scale * 1.2, scale * 0.8],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: totalTime,
-            ease: 'easeInOut',
-          }}
-          style={{
-            width: '300px',
-            height: '300px',
-          }}
-        />
-
-        {/* Main circle */}
-        <motion.div
-          className={`relative rounded-full bg-gradient-to-br ${gradient} shadow-2xl flex items-center justify-center`}
-          animate={{
-            scale: scale,
-          }}
-          transition={{
-            duration: totalTime,
-            ease: 'easeInOut',
-          }}
-          style={{
-            width: '200px',
-            height: '200px',
-          }}
-        >
-          {/* Countdown */}
-          <motion.span
-            key={timeRemaining}
+      <motion.div
+        className="relative z-10 w-64 h-64 rounded-full flex items-center justify-center force-animation"
+        style={{
+          background: `radial-gradient(circle, ${phaseColors[phase]}40, ${phaseColors[phase]}10)`,
+        }}
+        animate={{
+          scale: scale,
+          boxShadow: `0 0 40px ${phaseColors[phase]}60`,
+        }}
+        transition={{
+          duration: totalTime,
+          ease: 'easeInOut',
+        }}
+      >
+        <div className="text-center">
+          <motion.p
+            key={phase}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-semibold text-text-primary mb-3"
+          >
+            {phaseLabels[phase]}
+          </motion.p>
+          <motion.p
+            key={`${phase}-time`}
             initial={{ scale: 1.2, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-6xl font-bold text-white"
+            className="text-5xl font-bold text-text-primary"
           >
             {timeRemaining}
-          </motion.span>
-        </motion.div>
-      </div>
+          </motion.p>
+        </div>
+      </motion.div>
 
       {/* Instruction Text */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-8 text-center"
+        className="mt-12 text-center px-4"
       >
-        <p className="text-lg text-gray-700">
+        <p className="text-base text-text-secondary">
           {phase === 'inhale' && 'Inspire lentamente pelo nariz'}
           {phase === 'hold' && 'Segure o ar nos pulmões'}
           {phase === 'exhale' && 'Expire suavemente pela boca'}
@@ -127,5 +100,5 @@ export function BreathingCircle({
         </p>
       </motion.div>
     </div>
-  );
+  )
 }

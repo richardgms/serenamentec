@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { X } from '@/lib/constants/icons';
 import { Button } from '@/components/ui/Button';
 
 interface DeleteConfirmModalProps {
@@ -65,24 +66,24 @@ export function DeleteConfirmModal({
                   {title}
                 </h2>
                 {description && (
-                  <p className="mt-1 text-sm text-gray-600">{description}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{description}</p>
                 )}
               </div>
               <button
                 onClick={onClose}
                 aria-label="Fechar"
-                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-smooth"
+                className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-text-secondary transition-smooth"
               >
-                <X className="h-5 w-5" />
+                <OptimizedIcon icon={X} size={20} weight="bold" />
               </button>
             </div>
 
-            {children && <div className="space-y-3 text-sm text-gray-600">{children}</div>}
+            {children && <div className="space-y-3 text-sm text-text-secondary">{children}</div>}
 
             <div className="mt-6 flex flex-col gap-3">
               <Button
                 variant="outline"
-                className="border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                className="text-text-primary"
                 onClick={onClose}
               >
                 {cancelLabel}

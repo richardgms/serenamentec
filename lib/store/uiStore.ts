@@ -21,8 +21,11 @@ interface UIStore {
 
   // Toast notifications
   toastMessage: string | null;
-  toastType: 'success' | 'error' | 'info' | null;
-  showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+  toastType: 'success' | 'error' | 'info' | 'warning' | null;
+  showToast: (
+    message: string,
+    type: 'success' | 'error' | 'info' | 'warning'
+  ) => void;
   hideToast: () => void;
 
   // Loading states

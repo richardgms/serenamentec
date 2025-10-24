@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { Spinner } from '@/components/ui/Spinner';
 import IntensitySlider from '@/components/profile/IntensitySlider';
 import { useUIStore } from '@/lib/store/uiStore';
 import {
@@ -25,6 +28,21 @@ interface CrisisFormState {
   triggers: string;
   location: string;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 export default function CrisisLogPage() {
   const router = useRouter();
@@ -121,128 +139,173 @@ export default function CrisisLogPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    setForm({
+      intensity: 3,
+      crisisTypes: [],
+      duration: CRISIS_DURATION_OPTIONS[0].value,
+      whatHelped: [],
+      otherSupport: '',
+      additionalNotes: '',
+      triggers: '',
+      location: '',
+    });
+    showToast('Formulário resetado', 'success');
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Card className="space-y-6">
+        <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+          <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Registro de Crises', href: '#' },
+            ]}
+          />
+
+          <motion.form
+            onSubmit={handleSubmit}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-6">
               <IntensitySlider
                 value={form.intensity}
                 onChange={(value) => setForm((prev) => ({ ...prev, intensity: value }))}
               />
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Tipo de crise
                 </h3>
                 <div className="grid gap-2">
-                  {CRISIS_TYPE_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-smooth ${
-                        form.crisisTypes.includes(option.value)
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-200 text-gray-700'
-                      }`}
-                    >
-                      <span>{option.label}</span>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={form.crisisTypes.includes(option.value)}
-                        onChange={() => handleToggleType(option.value)}
-                      />
-                      <span
-                        className={`h-5 w-5 rounded-full border-2 ${
-                          form.crisisTypes.includes(option.value)
-                            ? 'border-primary bg-primary'
-                            : 'border-gray-300'
-                        }`}
-                      />
-                    </label>
-                  ))}
+                  {CRISIS_TYPE_OPTIONS.map((option) => {
+                    const isSelected = form.crisisTypes.includes(option.value);
+                    return (
+                      <label
+                        key={option.value}
+                        className="flex items-center justify-between rounded-xl px-4 py-3 text-sm transition-all cursor-pointer"
+                        style={{
+                          border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-light)',
+                          backgroundColor: isSelected ? 'rgba(125, 211, 192, 0.1)' : 'var(--surface-card)',
+                          color: isSelected ? 'var(--primary)' : 'var(--text-primary)'
+                        }}
+                      >
+                        <span>{option.label}</span>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={isSelected}
+                          onChange={() => handleToggleType(option.value)}
+                        />
+                        <span
+                          className="h-5 w-5 rounded-full transition-all"
+                          style={{
+                            border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-medium)',
+                            backgroundColor: isSelected ? 'var(--primary)' : 'transparent'
+                          }}
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Duracao aproximada
                 </h3>
                 <div className="grid gap-2">
-                  {CRISIS_DURATION_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-smooth ${
-                        form.duration === option.value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-200 text-gray-700'
-                      }`}
-                    >
-                      <span>{option.label}</span>
-                      <input
-                        type="radio"
-                        name="duration"
-                        value={option.value}
-                        className="hidden"
-                        checked={form.duration === option.value}
-                        onChange={() =>
-                          setForm((prev) => ({ ...prev, duration: option.value }))
-                        }
-                      />
-                      <span
-                        className={`h-5 w-5 rounded-full border-2 ${
-                          form.duration === option.value
-                            ? 'border-primary bg-primary'
-                            : 'border-gray-300'
-                        }`}
-                      />
-                    </label>
-                  ))}
+                  {CRISIS_DURATION_OPTIONS.map((option) => {
+                    const isSelected = form.duration === option.value;
+                    return (
+                      <label
+                        key={option.value}
+                        className="flex items-center justify-between rounded-xl px-4 py-3 text-sm transition-all cursor-pointer"
+                        style={{
+                          border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-light)',
+                          backgroundColor: isSelected ? 'rgba(125, 211, 192, 0.1)' : 'var(--surface-card)',
+                          color: isSelected ? 'var(--primary)' : 'var(--text-primary)'
+                        }}
+                      >
+                        <span>{option.label}</span>
+                        <input
+                          type="radio"
+                          name="duration"
+                          value={option.value}
+                          className="hidden"
+                          checked={isSelected}
+                          onChange={() =>
+                            setForm((prev) => ({ ...prev, duration: option.value }))
+                          }
+                        />
+                        <span
+                          className="h-5 w-5 rounded-full transition-all"
+                          style={{
+                            border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-medium)',
+                            backgroundColor: isSelected ? 'var(--primary)' : 'transparent'
+                          }}
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="space-y-5">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-5">
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                   O que ajudou?
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                   Escolha todas as estrategias que trouxeram alivio
                 </p>
                 <div className="grid gap-2">
-                  {WHAT_HELPED_OPTIONS.map((item) => (
-                    <label
-                      key={item}
-                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm transition-smooth ${
-                        form.whatHelped.includes(item)
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-gray-200 text-gray-700'
-                      }`}
-                    >
-                      <span>{item}</span>
-                      <input
-                        type="checkbox"
-                        className="hidden"
-                        checked={form.whatHelped.includes(item)}
-                        onChange={() => handleToggleHelp(item)}
-                      />
-                      <span
-                        className={`h-5 w-5 rounded-md border-2 ${
-                          form.whatHelped.includes(item)
-                            ? 'border-primary bg-primary'
-                            : 'border-gray-300'
-                        }`}
-                      />
-                    </label>
-                  ))}
+                  {WHAT_HELPED_OPTIONS.map((item) => {
+                    const isSelected = form.whatHelped.includes(item);
+                    return (
+                      <label
+                        key={item}
+                        className="flex items-center justify-between rounded-xl px-4 py-3 text-sm transition-all cursor-pointer"
+                        style={{
+                          border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-light)',
+                          backgroundColor: isSelected ? 'rgba(125, 211, 192, 0.1)' : 'var(--surface-card)',
+                          color: isSelected ? 'var(--primary)' : 'var(--text-primary)'
+                        }}
+                      >
+                        <span>{item}</span>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={isSelected}
+                          onChange={() => handleToggleHelp(item)}
+                        />
+                        <span
+                          className="h-5 w-5 rounded-md transition-all"
+                          style={{
+                            border: isSelected ? '2px solid var(--primary)' : '2px solid var(--border-medium)',
+                            backgroundColor: isSelected ? 'var(--primary)' : 'transparent'
+                          }}
+                        />
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700" htmlFor="otherSupport">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="otherSupport">
                   Outro apoio que funcionou
                 </label>
                 <input
@@ -253,14 +316,29 @@ export default function CrisisLogPage() {
                     setForm((prev) => ({ ...prev, otherSupport: event.target.value }))
                   }
                   placeholder="Compartilhe outras estrategias"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(125, 211, 192, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
               </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="space-y-4">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700" htmlFor="location">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="location">
                   Onde voce estava?
                 </label>
                 <input
@@ -271,12 +349,25 @@ export default function CrisisLogPage() {
                     setForm((prev) => ({ ...prev, location: event.target.value }))
                   }
                   placeholder="Casa, trabalho, transporte..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(125, 211, 192, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700" htmlFor="triggers">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="triggers">
                   Gatilhos observados
                 </label>
                 <input
@@ -287,14 +378,31 @@ export default function CrisisLogPage() {
                     setForm((prev) => ({ ...prev, triggers: event.target.value }))
                   }
                   placeholder="Separe por virgulas. Ex.: barulho alto, muita luz"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(125, 211, 192, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
                 {triggerTokens.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {triggerTokens.map((trigger) => (
                       <span
                         key={trigger}
-                        className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                        className="rounded-full px-3 py-1 text-xs font-medium"
+                        style={{
+                          backgroundColor: 'rgba(125, 211, 192, 0.1)',
+                          color: 'var(--primary)'
+                        }}
                       >
                         {trigger}
                       </span>
@@ -305,7 +413,8 @@ export default function CrisisLogPage() {
 
               <div className="space-y-2">
                 <label
-                  className="text-sm font-semibold text-gray-700"
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
                   htmlFor="additionalNotes"
                 >
                   Notas adicionais
@@ -321,16 +430,30 @@ export default function CrisisLogPage() {
                   }
                   rows={4}
                   placeholder="Descreva o que sentiu, o que funcionou, o que evitar no futuro..."
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all resize-none"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(125, 211, 192, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 />
               </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <div className="flex gap-3">
+            <motion.div variants={itemVariants} className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-100"
+                className="flex-1"
                 onClick={() => router.back()}
                 disabled={isSaving}
               >
@@ -341,19 +464,14 @@ export default function CrisisLogPage() {
                 className="flex-1"
                 disabled={isSaving}
               >
-                {isSaving ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Registrando
-                  </span>
-                ) : (
-                  'Registrar crise'
-                )}
+                {isSaving ? 'Registrando...' : 'Registrar crise'}
               </Button>
-            </div>
-          </form>
-        </div>
+            </motion.div>
+          </motion.form>
+          </div>
+        </PullToRefresh>
       </PageTransition>
+      </main>
     </div>
   );
 }

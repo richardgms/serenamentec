@@ -3,8 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Loader2, Check, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, CaretLeft, CaretRight, Sparkle } from '@/lib/constants/icons';
 import { Card } from '@/components/ui/Card';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Spinner } from '@/components/ui/Spinner';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import {
   getJourneyInfo,
   formatStepNumber,
@@ -166,60 +170,107 @@ export default function JourneyStepPage() {
 
   if (loading) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-          <p className="text-sm text-gray-600">Carregando etapa...</p>
+      <PageTransition>
+        <div className="max-w-[428px] mx-auto px-4 py-6 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Spinner size="lg" className="mx-auto mb-4" />
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Carregando etapa...
+            </p>
+          </div>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
   if (error || !content) {
     return (
-      <div className="max-w-md mx-auto p-4 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Conteúdo não encontrado'}</p>
-          <button
-            onClick={() => router.push('/discover/journeys')}
-            className="text-primary font-medium"
-          >
-            Voltar para jornadas
-          </button>
+      <PageTransition>
+        <div className="max-w-[428px] mx-auto px-4 py-6 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p style={{ color: 'var(--error)' }} className="mb-4 font-medium">
+              {error || 'Conteúdo não encontrado'}
+            </p>
+            <button
+              onClick={() => router.push('/discover/journeys')}
+              style={{ color: 'var(--primary)' }}
+              className="font-medium hover:opacity-80 transition-opacity"
+            >
+              Voltar para jornadas
+            </button>
+          </div>
         </div>
-      </div>
+      </PageTransition>
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="max-w-md mx-auto p-4 pb-20">
+    <main>
+    <PageTransition>
+      <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6 pb-20">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: 'Home', href: '/home' },
+            { label: 'Descobrir', href: '/discover' },
+            { label: 'Jornadas', href: '/discover/journeys' },
+            { label: journeyInfo.title, href: '#' },
+          ]}
+        />
+
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
+        <motion.div
+          variants={itemVariants}
+          initial="hidden"
+          animate="show"
+          className="flex items-center gap-3"
+        >
           <button
             onClick={() => router.push('/discover/journeys')}
             className="tap-highlight-none"
             aria-label="Voltar"
           >
-            <ArrowLeft className="h-6 w-6 text-gray-700" />
+            <OptimizedIcon icon={ArrowLeft} size={24} color="var(--text-primary)" />
           </button>
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-2xl">{journeyInfo.emoji}</span>
-              <h1 className="text-lg font-bold text-gray-800">
+              <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {journeyInfo.title}
               </h1>
             </div>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
               {formatStepNumber(currentStep, journeyInfo.totalSteps)}
             </p>
           </div>
           {isStepCompleted && (
-            <div className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-              <Check className="h-3 w-3" />
+            <div
+              className="px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1"
+              style={{
+                backgroundColor: 'var(--success-bg)',
+                color: 'var(--success)'
+              }}
+            >
+              <OptimizedIcon icon={Check} size={12} />
               Concluída
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Journey Completed Banner */}
         <AnimatePresence>
@@ -228,11 +279,15 @@ export default function JourneyStepPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="mb-4"
             >
-              <Card className="bg-gradient-to-r from-primary to-secondary text-white">
+              <Card
+                style={{
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
+                  color: 'white'
+                }}
+              >
                 <div className="flex items-center gap-3">
-                  <Sparkles className="h-6 w-6" />
+                  <OptimizedIcon icon={Sparkle} size={24} color="white" />
                   <div>
                     <h3 className="font-bold">Parabéns!</h3>
                     <p className="text-sm">Você completou toda a jornada!</p>
@@ -250,8 +305,8 @@ export default function JourneyStepPage() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
         >
-          <Card className={`bg-gradient-to-br ${journeyInfo.gradient} mb-4`}>
-            <h2 className="text-xl font-bold text-gray-800 mb-3">
+          <Card className={`bg-gradient-to-br ${journeyInfo.gradient}`}>
+            <h2 className="text-xl font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
               {content.title}
             </h2>
 
@@ -267,21 +322,21 @@ export default function JourneyStepPage() {
                         if (line.startsWith('**') && line.endsWith('**')) {
                           // Bold header
                           return (
-                            <h4 key={lineIdx} className="font-semibold text-gray-800 mb-2">
+                            <h4 key={lineIdx} className="font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                               {line.replace(/\*\*/g, '')}
                             </h4>
                           );
                         } else if (line.startsWith('•')) {
                           // Bullet point
                           return (
-                            <p key={lineIdx} className="text-gray-700 ml-4 mb-1">
+                            <p key={lineIdx} className="ml-4 mb-1" style={{ color: 'var(--text-secondary)' }}>
                               {line}
                             </p>
                           );
                         } else if (line.trim()) {
                           // Regular line
                           return (
-                            <p key={lineIdx} className="text-gray-700 mb-2">
+                            <p key={lineIdx} className="mb-2" style={{ color: 'var(--text-secondary)' }}>
                               {line}
                             </p>
                           );
@@ -293,7 +348,7 @@ export default function JourneyStepPage() {
                 } else {
                   // Regular paragraph
                   return (
-                    <p key={idx} className="text-gray-700 mb-3 last:mb-0">
+                    <p key={idx} className="mb-3 last:mb-0" style={{ color: 'var(--text-secondary)' }}>
                       {section}
                     </p>
                   );
@@ -303,33 +358,49 @@ export default function JourneyStepPage() {
 
             {/* Reflection Question */}
             {content.reflection && (
-              <div className="mt-6 p-4 bg-white/50 rounded-lg border-l-4 border-primary">
-                <p className="font-medium text-gray-800 mb-1">
+              <div
+                className="mt-6 p-4 rounded-lg"
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                  borderLeft: '4px solid var(--primary)'
+                }}
+              >
+                <p className="font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
                   💭 Reflita:
                 </p>
-                <p className="text-sm text-gray-700">{content.reflection}</p>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  {content.reflection}
+                </p>
               </div>
             )}
           </Card>
         </motion.div>
 
         {/* Notes */}
-        <Card className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <Card>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
             Suas anotações desta etapa (opcional)
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Anote aqui suas reflexões sobre esta etapa..."
-            className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="w-full min-h-[100px] p-3 rounded-lg resize-none transition-all"
+            style={{
+              border: '2px solid var(--border-light)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-primary)'
+            }}
+            onFocus={(e) => e.target.style.borderColor = 'var(--primary)'}
+            onBlur={(e) => e.target.style.borderColor = 'var(--border-light)'}
             disabled={saving}
           />
           {notes.trim() && !isStepCompleted && (
             <button
               onClick={handleSaveNotes}
               disabled={saving}
-              className="mt-2 text-sm text-primary hover:underline disabled:opacity-50"
+              className="mt-2 text-sm hover:underline disabled:opacity-50"
+              style={{ color: 'var(--primary)' }}
             >
               {saving ? 'Salvando...' : 'Salvar notas'}
             </button>
@@ -343,16 +414,22 @@ export default function JourneyStepPage() {
             <button
               onClick={handleSaveAndMarkComplete}
               disabled={saving}
-              className="w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
+              style={{
+                backgroundColor: 'var(--primary)',
+                color: 'white'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
             >
               {saving ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Spinner size="sm" className="border-white" />
                   Salvando...
                 </>
               ) : (
                 <>
-                  <Check className="h-5 w-5" />
+                  <OptimizedIcon icon={Check} size={20} color="white" />
                   Marcar como concluída
                 </>
               )}
@@ -364,29 +441,44 @@ export default function JourneyStepPage() {
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              className="py-2 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 transition-all"
+              style={{
+                backgroundColor: 'var(--surface-card)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-light)'
+              }}
+              onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = 'var(--surface-main)')}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-card)'}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <OptimizedIcon icon={CaretLeft} size={16} color="var(--text-primary)" />
               Anterior
             </button>
             <button
               onClick={handleNext}
               disabled={currentStep === journeyInfo.totalSteps}
-              className="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+              className="py-2 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 transition-all"
+              style={{
+                backgroundColor: 'var(--surface-card)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-light)'
+              }}
+              onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = 'var(--surface-main)')}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-card)'}
             >
               Próxima
-              <ChevronRight className="h-4 w-4" />
+              <OptimizedIcon icon={CaretRight} size={16} color="var(--text-primary)" />
             </button>
           </div>
         </div>
 
         {/* Progress Indicator */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            {progress?.completedSteps.length || 0} de {journeyInfo.totalSteps} etapas
-            concluídas
+        <div className="text-center">
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            {progress?.completedSteps.length || 0} de {journeyInfo.totalSteps} etapas concluídas
           </p>
         </div>
-    </div>
+      </div>
+    </PageTransition>
+    </main>
   );
 }

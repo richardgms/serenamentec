@@ -42,14 +42,14 @@ export function ProgressBar({
     <div className={`w-full ${className}`}>
       {showLabel && (
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Progresso</span>
-          <span className="text-sm font-semibold text-gray-800">
+          <span className="text-sm text-text-secondary">Progresso</span>
+          <span className="text-sm font-semibold text-text-primary">
             {Math.round(clampedProgress)}%
           </span>
         </div>
       )}
 
-      <div className={`w-full bg-gray-200 rounded-full overflow-hidden ${sizeClasses[size]}`}>
+      <div className={`w-full bg-[var(--border-light)] rounded-full overflow-hidden ${sizeClasses[size]}`}>
         {animated ? (
           <motion.div
             className={`h-full ${colorClasses[variant]} rounded-full`}
@@ -139,7 +139,7 @@ export function CircularProgress({
       </svg>
 
       {showLabel && (
-        <span className="absolute text-sm font-semibold text-gray-800">
+        <span className="absolute text-sm font-semibold text-text-primary">
           {Math.round(clampedProgress)}%
         </span>
       )}
@@ -189,7 +189,7 @@ export function StepProgress({
 
             {/* Connector line */}
             {index < totalSteps - 1 && (
-              <div className="flex-1 h-0.5 mx-2 bg-gray-200">
+              <div className="flex-1 h-0.5 mx-2 bg-[var(--border-light)]">
                 <motion.div
                   className="h-full bg-primary"
                   initial={{ width: 0 }}
@@ -216,7 +216,7 @@ export function IndeterminateProgress({
   className?: string;
 }) {
   return (
-    <div className={`w-full h-1 bg-gray-200 rounded-full overflow-hidden ${className}`}>
+    <div className={`w-full h-1 bg-[var(--border-light)] rounded-full overflow-hidden ${className}`}>
       <motion.div
         className={`h-full w-1/3 ${colorClasses[variant]} rounded-full`}
         animate={{

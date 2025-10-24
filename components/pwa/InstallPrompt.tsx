@@ -6,8 +6,9 @@
  */
 
 import { useState, useEffect } from 'react';
-import { X, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { X, DownloadSimple } from '@/lib/constants/icons';
 import { Button } from '@/components/ui/Button';
 import { useHaptic } from '@/lib/hooks/useHaptic';
 
@@ -118,28 +119,28 @@ export function InstallPrompt() {
                 className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Fechar"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <OptimizedIcon icon={X} size={20} weight="bold" className="text-text-tertiary" />
               </button>
 
               {/* Conteúdo */}
               <div className="flex items-start gap-4">
                 {/* Ícone */}
                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-                  <Download className="h-6 w-6 text-white" />
+                  <OptimizedIcon icon={DownloadSimple} size={24} weight="bold" className="text-white" />
                 </div>
 
                 {/* Texto */}
                 <div className="flex-1 pr-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <h3 className="text-lg font-semibold text-text-primary mb-1">
                     Instalar Serenamente
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-text-secondary mb-4">
                     Acesse mais rápido e use offline. Instale nosso app na sua
                     tela inicial!
                   </p>
 
                   {/* Benefícios */}
-                  <ul className="text-xs text-gray-500 space-y-1 mb-4">
+                  <ul className="text-xs text-text-tertiary space-y-1 mb-4">
                     <li className="flex items-center gap-2">
                       <span className="w-1 h-1 bg-primary rounded-full" />
                       Funciona offline

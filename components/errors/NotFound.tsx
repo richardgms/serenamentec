@@ -3,13 +3,14 @@
  * Componente para erro 404
  */
 
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Search, Home } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { emptyStateVariants, floatingAnimation } from '@/lib/animations/variants';
+import { motion, useReducedMotion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { House, MagnifyingGlass } from '@/lib/constants/icons'
+import { emptyStateVariants, floatingAnimation } from '@/lib/animations/variants'
 
 export interface NotFoundProps {
   title?: string;
@@ -23,6 +24,7 @@ export function NotFound({
   showHomeButton = true,
 }: NotFoundProps) {
   const router = useRouter();
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
@@ -30,24 +32,37 @@ export function NotFound({
       initial="hidden"
       animate="visible"
       className="flex flex-col items-center justify-center text-center px-6 py-12 min-h-[60vh]"
+      role="alert"
+      aria-live="polite"
     >
       {/* Floating 404 */}
       <motion.div
-        variants={floatingAnimation}
-        animate="animate"
+        {...(!shouldReduceMotion && {
+          variants: floatingAnimation,
+          animate: 'animate'
+        })}
         className="mb-6"
       >
-        <div className="relative">
-          <div className="text-8xl font-bold text-gray-200">404</div>
-          <Search className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-gray-400" />
+        <div className="relative grid place-items-center">
+          <span className="text-7xl font-bold tracking-wider text-text-tertiary/20">
+            404
+          </span>
+          <span className="absolute rounded-full bg-primary/10 p-4 shadow-soft-lg">
+            <OptimizedIcon
+              icon={MagnifyingGlass}
+              size={32}
+              weight="duotone"
+              className="text-primary"
+            />
+          </span>
         </div>
       </motion.div>
 
       {/* Title */}
-      <h1 className="text-2xl font-bold text-gray-800 mb-3">{title}</h1>
+      <h1 className="text-2xl font-bold text-text-primary mb-3">{title}</h1>
 
       {/* Message */}
-      <p className="text-gray-600 mb-8 max-w-md leading-relaxed">{message}</p>
+      <p className="text-text-secondary mb-8 max-w-md leading-relaxed">{message}</p>
 
       {/* Actions */}
       {showHomeButton && (
@@ -64,7 +79,7 @@ export function NotFound({
             variant="primary"
             className="flex items-center gap-2"
           >
-            <Home className="h-4 w-4" />
+            <OptimizedIcon icon={House} size={18} weight="bold" />
             Ir para Início
           </Button>
         </div>
@@ -72,7 +87,7 @@ export function NotFound({
 
       {/* Illustration text */}
       <div className="mt-12 text-center">
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-text-tertiary">
           🧭 Parece que você se perdeu por aqui
         </p>
       </div>

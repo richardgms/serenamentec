@@ -2,11 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Activity, BarChart3, Clock, Target } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { Spinner } from '@/components/ui/Spinner';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Activity, ChartBar, Clock, Target } from '@/lib/constants/icons';
 import StatCard from '@/components/profile/StatCard';
 import CrisisCard from '@/components/profile/CrisisCard';
 import { useUIStore } from '@/lib/store/uiStore';
@@ -44,6 +50,21 @@ interface PaginationInfo {
   totalPages: number;
   hasMore: boolean;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 export default function CrisisHistoryPage() {
   const router = useRouter();
@@ -101,6 +122,11 @@ export default function CrisisHistoryPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    await loadHistory(true);
+    showToast('Histórico atualizado', 'success');
+  };
+
   const typeLabelMap = useMemo(
     () =>
       new Map<string, string>(
@@ -113,13 +139,28 @@ export default function CrisisHistoryPage() {
   const canLoadMore = pagination?.hasMore ?? false;
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6 space-y-6">
-          <section className="space-y-4">
+        <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+          <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Histórico de crises' },
+            ]}
+          />
+
+          <motion.section
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-4"
+          >
             <div className="flex flex-col gap-3">
-              <h2 className="text-base font-semibold text-gray-800">
+              <h2 className="text-base font-semibold text-text-primary">
                 Filtrar periodo
               </h2>
               <div className="grid grid-cols-2 gap-2">
@@ -130,7 +171,7 @@ export default function CrisisHistoryPage() {
                     className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-smooth ${
                       period === option.value
                         ? 'border-primary bg-primary text-white'
-                        : 'border-gray-200 bg-white text-gray-600'
+                        : 'border-gray-200 bg-white text-text-secondary'
                     }`}
                     type="button"
                   >
@@ -150,13 +191,13 @@ export default function CrisisHistoryPage() {
             {!isLoading && stats && (
               <div className="grid gap-3">
                 <StatCard
-                  icon={<BarChart3 className="h-5 w-5" />}
+                  icon={<OptimizedIcon icon={ChartBar} size={20} weight="duotone" />}
                   label="Total no periodo"
                   value={stats.total}
                   accent="primary"
                 />
                 <StatCard
-                  icon={<Activity className="h-5 w-5" />}
+                  icon={<OptimizedIcon icon={Activity} size={20} weight="duotone" />}
                   label="Intensidade media"
                   value={
                     stats.total > 0
@@ -170,7 +211,7 @@ export default function CrisisHistoryPage() {
                   accent="surface"
                 />
                 <StatCard
-                  icon={<Target className="h-5 w-5" />}
+                  icon={<OptimizedIcon icon={Target} size={20} weight="duotone" />}
                   label="Tipo mais comum"
                   value={
                     stats.mostCommonType
@@ -181,7 +222,7 @@ export default function CrisisHistoryPage() {
                   accent="surface"
                 />
                 <StatCard
-                  icon={<Clock className="h-5 w-5" />}
+                  icon={<OptimizedIcon icon={Clock} size={20} weight="duotone" />}
                   label="Duracao media"
                   value={stats.averageDurationLabel ?? '--'}
                   accent="surface"
@@ -194,10 +235,15 @@ export default function CrisisHistoryPage() {
                 {error}
               </Card>
             )}
-          </section>
+          </motion.section>
 
-          <section className="space-y-4">
-            <h2 className="text-base font-semibold text-gray-800">
+          <motion.section
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-4"
+          >
+            <h2 className="text-base font-semibold text-text-primary">
               Registro cronologico
             </h2>
 
@@ -210,23 +256,15 @@ export default function CrisisHistoryPage() {
             )}
 
             {!isLoading && !hasLogs && (
-              <Card className="text-center">
-                <p className="text-sm font-semibold text-gray-700">
-                  Nenhuma crise registrada neste periodo
-                </p>
-                <p className="mt-2 text-xs text-gray-500">
-                  Registre cada experiencia para acompanhar gatilhos e vitorias
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={() => {
-                    showToast('Vamos registrar juntos.', 'info');
-                    setTimeout(() => router.push('/profile/crisis-log'), 200);
-                  }}
-                >
-                  Registrar agora
-                </Button>
-              </Card>
+              <EmptyState
+                context="crisis-history"
+                actionLabel="Registrar agora"
+                onAction={() => {
+                  showToast('Vamos registrar juntos.', 'info')
+                  setTimeout(() => router.push('/profile/crisis-log'), 200)
+                }}
+                className="py-12"
+              />
             )}
 
             {hasLogs && (
@@ -240,23 +278,18 @@ export default function CrisisHistoryPage() {
             {hasLogs && canLoadMore && (
               <Button
                 variant="outline"
-                className="w-full border-gray-200 text-gray-600 hover:bg-gray-100"
+                className="w-full border-gray-200 text-text-secondary hover:bg-gray-100"
                 onClick={() => loadHistory(false)}
                 disabled={isLoadingMore}
               >
-                {isLoadingMore ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Carregando...
-                  </span>
-                ) : (
-                  'Carregar mais'
-                )}
+                {isLoadingMore ? 'Carregando...' : 'Carregar mais'}
               </Button>
             )}
-          </section>
-        </div>
+          </motion.section>
+          </div>
+        </PullToRefresh>
       </PageTransition>
+      </main>
     </div>
   );
 }

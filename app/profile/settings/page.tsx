@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Loader2, FileDown, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/ui/Spinner';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { DownloadSimple, Trash } from '@/lib/constants/icons';
 import ToggleSwitch from '@/components/profile/ToggleSwitch';
 import DeleteConfirmModal from '@/components/profile/DeleteConfirmModal';
 import { useUIStore } from '@/lib/store/uiStore';
@@ -18,6 +22,21 @@ interface PreferencesState {
 const defaultPreferences: PreferencesState = {
   vibrationEnabled: true,
   soundEnabled: true,
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
 };
 
 export default function ProfileSettingsPage() {
@@ -132,25 +151,41 @@ export default function ProfileSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-main)]">
+        <Spinner size="md" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6 space-y-6">
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Configurações' },
+            ]}
+          />
+
           {saveError && (
-            <Card className="border border-red-200 bg-red-50 text-sm text-red-600">
+            <Card className="text-sm" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-bg)', color: 'var(--error)' }}>
               {saveError}
             </Card>
           )}
 
-          <Card className="space-y-4">
-            <h2 className="text-base font-semibold text-gray-800">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
+            <h2 className="text-base font-semibold text-text-primary">
               Preferencias rapidas
             </h2>
             <ToggleSwitch
@@ -169,44 +204,52 @@ export default function ProfileSettingsPage() {
               Alteracoes sao salvas automaticamente
               {isSaving && ' · salvando...'}
             </p>
-          </Card>
+              </Card>
+            </motion.div>
 
-          <Card className="space-y-4">
-            <h2 className="text-base font-semibold text-gray-800">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
+            <h2 className="text-base font-semibold text-text-primary">
               Dados pessoais
             </h2>
             <Button
               variant="outline"
-              className="w-full border-gray-200 text-gray-600 hover:bg-gray-100"
+              className="w-full border-gray-200 text-text-secondary hover:bg-gray-100"
               onClick={handleExport}
             >
-              <FileDown className="mr-2 h-4 w-4" />
+              <OptimizedIcon icon={DownloadSimple} size={16} weight="regular" className="mr-2" />
               Exportar meus dados (em breve)
             </Button>
-            <div className="rounded-2xl bg-surface px-4 py-3 text-xs text-gray-500">
+            <div className="rounded-2xl bg-[var(--surface-card)] px-4 py-3 text-xs text-text-tertiary">
               Em breve voce podera solicitar um arquivo com todos os seus dados
               para guardar ou compartilhar com profissionais de apoio.
             </div>
-          </Card>
+              </Card>
+            </motion.div>
 
-          <Card className="space-y-4 border border-red-200 bg-red-50">
-            <h2 className="text-base font-semibold text-red-700">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4" style={{ borderColor: 'var(--error)', backgroundColor: 'var(--error-bg)' }}>
+            <h2 className="text-base font-semibold" style={{ color: 'var(--error)' }}>
               Historico de crises
             </h2>
-            <p className="text-sm text-red-600">
+            <p className="text-sm" style={{ color: 'var(--error)' }}>
               Esta acao remove todo o seu historico de crises. Use com cuidado.
             </p>
             <Button
               variant="primary"
-              className="w-full bg-red-500 hover:bg-red-600"
+              className="w-full"
+              style={{ backgroundColor: 'var(--error)', borderColor: 'var(--error)' }}
               onClick={() => setIsModalOpen(true)}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <OptimizedIcon icon={Trash} size={16} weight="regular" className="mr-2" />
               Limpar historico de crises
             </Button>
-          </Card>
+              </Card>
+            </motion.div>
+          </motion.div>
         </div>
       </PageTransition>
+      </main>
 
       <DeleteConfirmModal
         open={isModalOpen}
@@ -223,7 +266,7 @@ export default function ProfileSettingsPage() {
         title="Tem certeza?"
         description="Esta acao é definitiva e removera todo o historico de crises registrado."
       >
-        <label className="flex items-start gap-2 text-sm text-gray-600">
+        <label className="flex items-start gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
             checked={confirmChecked}
@@ -234,13 +277,13 @@ export default function ProfileSettingsPage() {
             Eu entendo que esta acao nao pode ser desfeita e desejo continuar.
           </span>
         </label>
-        <div className="space-y-2 text-sm text-gray-600">
+        <div className="space-y-2 text-sm text-text-secondary">
           <p>Digite <strong>LIMPAR</strong> para confirmar:</p>
           <input
             type="text"
             value={confirmText}
             onChange={(event) => setConfirmText(event.target.value.toUpperCase())}
-            className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
             placeholder="LIMPAR"
             disabled={isClearing}
           />

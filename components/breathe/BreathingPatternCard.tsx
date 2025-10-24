@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
 import { BreathingPattern } from '@/lib/utils/breathingPatterns';
-import { ArrowRight } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { ArrowRight } from 'phosphor-react';
 
 interface BreathingPatternCardProps {
   pattern: BreathingPattern;
@@ -23,14 +24,16 @@ export function BreathingPatternCard({ pattern, onClick }: BreathingPatternCardP
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <Card
+        clickable
         onClick={onClick}
+        padding="md"
         className={`
           relative overflow-hidden
-          bg-gradient-to-br ${pattern.gradient}
+          !bg-gradient-to-br ${pattern.gradient}
           text-white
-          cursor-pointer
           min-h-[180px]
           flex flex-col justify-between
+          !border-0
         `}
       >
         {/* Header */}
@@ -46,7 +49,7 @@ export function BreathingPatternCard({ pattern, onClick }: BreathingPatternCardP
             whileHover={{ x: 5 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <ArrowRight className="h-5 w-5 text-white/80" />
+            <OptimizedIcon icon={ArrowRight} size={20} className="text-white/80" />
           </motion.div>
         </div>
 

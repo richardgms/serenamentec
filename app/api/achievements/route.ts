@@ -6,7 +6,7 @@ import {
   getAchievementInfo,
   type AchievementType,
 } from '@/lib/achievements/achievementHelpers';
-import { getAchievementProgress } from '@/lib/achievements/achievementChecker';
+// Nota: evitamos importar getAchievementProgress para reduzir múltiplas idas ao DB
 
 export async function GET() {
   try {
@@ -56,25 +56,77 @@ export async function GET() {
       })
     );
 
-    // Build locked list with progress
-    const locked = await Promise.all(
-      allAchievements
-        .filter((info) => !unlockedTypes.has(info.type))
-        .map(async (info) => {
-          const progress = await getAchievementProgress(user.id, info.type);
-          return {
-            type: info.type,
-            title: info.title,
-            description: info.description,
-            emoji: info.emoji,
-            color: info.color,
-            gradient: info.gradient,
-            progress: progress.current,
-            required: progress.required,
-            percentage: Math.round((progress.current / progress.required) * 100),
-          };
-        })
-    );
+    // Aggregate progress in a single round of queries to avoid connection spikes
+    const [
+      sessionsCountResult,
+      distinctVideosResult,
+      completedJourneysResult,
+      reflectionsCountResult,
+      streakResult,
+    ] = await Promise.all([
+      prisma.breathingSession
+        .count({ where: { userId: user.id, completed: true } })
+        .catch(() => 0),
+      prisma.videoHistory
+        .findMany({ where: { userId: user.id }, distinct: ['videoId'], select: { videoId: true } })
+        .catch(() => [] as { videoId: string }[]),
+      prisma.journeyProgress
+        .count({ where: { userId: user.id, completed: true } })
+        .catch(() => 0),
+      prisma.dailyReflection
+        .count({ where: { userId: user.id, skipped: false } })
+        .catch(() => 0),
+      prisma.userStreak
+        .findUnique({ where: { userId: user.id }, select: { currentStreak: true } })
+        .catch(() => null as { currentStreak: number } | null),
+    ]);
+
+    const progressMap: Record<AchievementType, { current: number; required: number }> = {
+      FIRST_BREATHING: {
+        current: Math.min(sessionsCountResult || 0, 1),
+        required: 1,
+      },
+      EXPLORER_5_VIDEOS: {
+        current: distinctVideosResult.length,
+        required: 5,
+      },
+      SELF_KNOWLEDGE: {
+        current: Math.min(completedJourneysResult || 0, 1),
+        required: 1,
+      },
+      REFLECTIVE_10: {
+        current: Math.min(reflectionsCountResult || 0, 10),
+        required: 10,
+      },
+      SEVEN_DAYS_JOURNEY: {
+        current: Math.min(streakResult?.currentStreak || 0, 7),
+        required: 7,
+      },
+      THIRTY_DAYS_CARE: {
+        current: Math.min(streakResult?.currentStreak || 0, 30),
+        required: 30,
+      },
+    };
+
+    // Build locked list with pre-computed progress
+    const locked = allAchievements
+      .filter((info) => !unlockedTypes.has(info.type))
+      .map((info) => {
+        const progress = progressMap[info.type];
+        const required = progress.required || 1;
+        const percentage = Math.round((progress.current / required) * 100);
+        return {
+          type: info.type,
+          title: info.title,
+          description: info.description,
+          emoji: info.emoji,
+          color: info.color,
+          gradient: info.gradient,
+          progress: progress.current,
+          required,
+          percentage,
+        };
+      });
 
     // Calculate stats
     const totalAchievements = allAchievements.length;

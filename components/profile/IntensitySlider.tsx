@@ -24,7 +24,7 @@ export function IntensitySlider({ value, onChange }: IntensitySliderProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">Intensidade</span>
+        <span className="text-sm font-medium text-text-secondary">Intensidade</span>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${selected.color}`}>
           {selected.label}
         </span>
@@ -38,13 +38,18 @@ export function IntensitySlider({ value, onChange }: IntensitySliderProps) {
           step={1}
           value={value}
           onChange={handleChange}
-          className="relative z-10 w-full appearance-none bg-transparent focus:outline-none"
+          aria-label="Intensidade da crise"
+          aria-valuenow={value}
+          aria-valuemin={1}
+          aria-valuemax={5}
+          aria-valuetext={selected.label}
+          className="relative z-10 w-full appearance-none bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         />
         <div className="mt-3 flex justify-between">
           {marks.map((mark) => (
             <span
               key={mark.value}
-              className="w-16 text-center text-[10px] font-medium text-gray-500"
+              className="w-16 text-center text-[10px] font-medium text-text-tertiary"
             >
               {mark.label}
             </span>

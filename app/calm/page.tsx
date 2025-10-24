@@ -4,10 +4,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
 import { useUIStore } from '@/lib/store/uiStore';
+import { logger } from '@/lib/utils/logger';
 import { CategoryTabs, VideoCategory } from '@/components/calm/CategoryTabs';
 import { VideoCard } from '@/components/calm/VideoCard';
-import { Loader2 } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { VideoCamera } from '@/lib/constants/icons';
 
 interface Video {
   id: string;
@@ -81,7 +87,7 @@ export default function CalmPage() {
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error('Error loading videos:', error);
+        logger.error('Failed to load videos', error, 'CalmPage');
         setIsLoading(false);
       });
   }, [activeCategory]);
@@ -91,94 +97,113 @@ export default function CalmPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen">
       <Header />
 
-      <div className="mobile-container px-4 py-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 text-center"
-        >
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Vídeos Relaxantes
-          </h1>
-          <p className="text-sm text-gray-600">
-            Escolha um vídeo para se acalmar e relaxar
-          </p>
-        </motion.div>
+      <main>
+        <PageTransition>
+          <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Acalmar' },
+            ]}
+          />
 
-        {/* Category Tabs */}
-        <CategoryTabs
-          activeCategory={activeCategory}
-          onCategoryChange={setActiveCategory}
-          favoritesCount={favoritesCount}
-          recentCount={recentCount}
-        />
-
-        {/* Videos Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : videos.length === 0 ? (
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
           >
-            <p className="text-gray-500 mb-2">
-              {activeCategory === 'FAVORITES'
-                ? '❤️ Nenhum vídeo favoritado ainda'
-                : activeCategory === 'RECENT'
-                ? '🕒 Nenhum vídeo assistido ainda'
-                : '😔 Nenhum vídeo disponível nesta categoria'}
-            </p>
-            <p className="text-sm text-gray-400">
-              {activeCategory === 'FAVORITES'
-                ? 'Favorite vídeos clicando no coração'
-                : activeCategory === 'RECENT'
-                ? 'Assista um vídeo para ele aparecer aqui'
-                : 'Em breve teremos mais vídeos'}
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <OptimizedIcon icon={VideoCamera} size={32} weight="duotone" className="text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold text-text-primary mb-2">
+              Vídeos Relaxantes
+            </h1>
+            <p className="text-sm text-text-secondary">
+              Escolha um vídeo para se acalmar e relaxar
             </p>
           </motion.div>
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="grid gap-4"
-          >
-            {videos.map((video) => (
-              <motion.div key={video.id || video.videoId} variants={itemVariants}>
-                <VideoCard
-                  videoId={video.videoId}
-                  title={video.title}
-                  description={video.description}
-                  thumbnail={video.thumbnail}
-                  duration={video.duration}
-                  onClick={() => handleVideoClick(video.videoId)}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
 
-        {/* Footer Info */}
-        {!isLoading && videos.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 text-center"
-          >
-            <p className="text-xs text-gray-500">
-              💡 Dica: Use fones de ouvido para uma experiência mais imersiva
-            </p>
-          </motion.div>
-        )}
-      </div>
+          {/* Category Tabs */}
+          <CategoryTabs
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+            favoritesCount={favoritesCount}
+            recentCount={recentCount}
+          />
+
+          {/* Videos Grid */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Spinner size="md" />
+            </div>
+          ) : videos.length === 0 ? (
+            <EmptyState
+              context={
+                activeCategory === 'FAVORITES'
+                  ? 'calm-favorites'
+                  : activeCategory === 'RECENT'
+                  ? 'calm-recent'
+                  : 'calm-category'
+              }
+              actionLabel={
+                activeCategory === 'FAVORITES'
+                  ? 'Explorar vídeos'
+                  : activeCategory === 'RECENT'
+                  ? 'Descobrir práticas'
+                  : activeCategory === 'VISUAL_CALMING'
+                  ? undefined
+                  : 'Ver outras categorias'
+              }
+              onAction={
+                activeCategory === 'VISUAL_CALMING'
+                  ? undefined
+                  : () => setActiveCategory('VISUAL_CALMING')
+              }
+              className="py-16"
+            />
+          ) : (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="show"
+              className="grid gap-4"
+            >
+              {videos.map((video) => (
+                <motion.div key={video.id || video.videoId} variants={itemVariants}>
+                  <VideoCard
+                    videoId={video.videoId}
+                    title={video.title}
+                    description={video.description}
+                    thumbnail={video.thumbnail}
+                    duration={video.duration}
+                    onClick={() => handleVideoClick(video.videoId)}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Footer Info */}
+          {!isLoading && videos.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-center"
+            >
+              <p className="text-xs text-text-tertiary">
+                💡 Dica: Use fones de ouvido para uma experiência mais imersiva
+              </p>
+            </motion.div>
+          )}
+        </div>
+      </PageTransition>
+      </main>
     </div>
   );
 }

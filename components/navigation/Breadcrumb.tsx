@@ -1,62 +1,60 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import Link from 'next/link'
+import { clsx } from 'clsx'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { CaretRight } from '@/lib/constants/icons'
 
 export interface BreadcrumbItem {
-  label: string;
-  href?: string;
+  label: string
+  href?: string
 }
 
 interface BreadcrumbProps {
-  items: BreadcrumbItem[];
-  className?: string;
+  items: BreadcrumbItem[]
+  className?: string
 }
 
-export function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
-  if (items.length === 0) return null;
+export function Breadcrumb({ items, className }: BreadcrumbProps) {
+  if (items.length === 0) return null
 
   return (
-    <nav aria-label="Breadcrumb" className={`mobile-container px-4 py-3 ${className}`}>
-      <ol className="flex items-center gap-2 text-sm overflow-x-auto">
-        {items.map((item, index) => {
-          const isLast = index === items.length - 1;
+    <nav className={clsx('flex items-center gap-2 text-sm', className)} aria-label="Breadcrumb">
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1
 
-          return (
-            <motion.li
-              key={index}
-              initial={{ opacity: 0, x: -5 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="flex items-center gap-2"
-            >
-              {item.href && !isLast ? (
-                <Link
-                  href={item.href}
-                  className="text-gray-500 hover:text-primary transition-smooth tap-highlight-none"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <span
-                  className={
-                    isLast
-                      ? 'font-medium text-gray-800'
-                      : 'text-gray-500'
-                  }
-                >
-                  {item.label}
-                </span>
-              )}
+        return (
+          <div key={index} className="flex items-center gap-2">
+            {item.href && !isLast ? (
+              <Link
+                href={item.href}
+                className="text-text-secondary hover:text-primary transition-colors duration-150 truncate max-w-[120px]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span
+                className={clsx(
+                  'truncate max-w-[150px]',
+                  isLast ? 'text-text-primary font-semibold' : 'text-text-secondary'
+                )}
+                {...(isLast && { 'aria-current': 'page' })}
+              >
+                {item.label}
+              </span>
+            )}
 
-              {!isLast && (
-                <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              )}
-            </motion.li>
-          );
-        })}
-      </ol>
+            {!isLast && (
+              <OptimizedIcon
+                icon={CaretRight}
+                size={16}
+                className="text-text-tertiary flex-shrink-0"
+                aria-hidden="true"
+              />
+            )}
+          </div>
+        )
+      })}
     </nav>
-  );
+  )
 }

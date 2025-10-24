@@ -1,26 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  ChevronRight,
-  HeartPulse,
-  ListTodo,
-  LogOut,
-  NotebookPen,
-  ShieldHalf,
-  Sparkles,
-  TrendingUp,
-  User,
-  Wind,
-} from 'lucide-react';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
-import PageTransition from '@/components/transitions/PageTransition';
+import { Avatar } from '@/components/ui/Avatar';
+import { Badge } from '@/components/ui/Badge';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
 import StatCard from '@/components/profile/StatCard';
 import { useUIStore } from '@/lib/store/uiStore';
 import { useUser } from '@/lib/hooks/useUser';
+import { logger } from '@/lib/utils/logger';
+import { Wind, Heart, Trophy, Brain, Fire, User as UserIcon, CaretRight } from '@/lib/constants/icons';
 
 interface ProfileStats {
   breathingSessions: number;
@@ -41,48 +37,41 @@ interface MenuItem {
   accent: string;
 }
 
-const menuItems: MenuItem[] = [
+const menuItems = [
   {
     title: 'Editar perfil',
-    description: 'Atualize nome, idade e diagnostico',
-    icon: NotebookPen,
+    description: 'Atualize nome, idade e diagnóstico',
+    icon: UserIcon,
     href: '/profile/edit',
-    accent: 'bg-primary/10 text-primary',
+    bgColor: 'var(--module-profile)',
   },
   {
     title: 'Registrar crise',
-    description: 'Anote detalhes enquanto estao frescos',
-    icon: HeartPulse,
+    description: 'Anote detalhes enquanto estão frescos',
+    icon: Heart,
     href: '/profile/crisis-log',
-    accent: 'bg-red-50 text-red-500',
+    bgColor: 'rgba(255, 139, 148, 0.15)',
   },
   {
-    title: 'Historico de crises',
-    description: 'Revise padroes e gatilhos',
-    icon: ListTodo,
+    title: 'Histórico de crises',
+    description: 'Revise padrões e gatilhos',
+    icon: Brain,
     href: '/profile/history',
-    accent: 'bg-secondary/50 text-gray-700',
+    bgColor: 'var(--module-breathe)',
   },
   {
     title: 'Conquistas',
-    description: 'Celebre seus avancos',
-    icon: Sparkles,
+    description: 'Celebre seus avanços',
+    icon: Trophy,
     href: '/profile/achievements',
-    accent: 'bg-yellow-100 text-yellow-600',
+    bgColor: 'rgba(245, 180, 97, 0.15)',
   },
   {
-    title: 'Configuracoes',
-    description: 'Preferencias de som e vibracao',
-    icon: ShieldHalf,
+    title: 'Configurações',
+    description: 'Preferências de som e vibração',
+    icon: Fire,
     href: '/profile/settings',
-    accent: 'bg-surface text-primary',
-  },
-  {
-    title: 'Excluir conta',
-    description: 'Remova seus dados com seguranca',
-    icon: LogOut,
-    href: '/profile/delete',
-    accent: 'bg-red-100 text-red-600',
+    bgColor: 'var(--module-calm)',
   },
 ];
 
@@ -106,52 +95,40 @@ function getDiagnosisDetails(type: string | null | undefined) {
     case 'EXPLORING':
       return {
         label: 'Explorando possibilidades',
-        badgeClass: 'bg-gray-100 text-gray-600',
+        badgeClass: 'bg-gray-100 text-text-secondary',
       };
     default:
       return {
         label: 'Diagnostico em aberto',
-        badgeClass: 'bg-gray-100 text-gray-500',
+        badgeClass: 'bg-gray-100 text-text-tertiary',
       };
   }
 }
 
 const statCardsConfig = (stats: ProfileStats) => [
   {
-    icon: <Wind className="h-5 w-5" />,
-    label: 'Sessoes de respiracao',
+    icon: Wind,
+    label: 'Sessões de respiração',
     value: stats.breathingSessions,
     accent: 'surface' as const,
   },
   {
-    icon: <TrendingUp className="h-5 w-5" />,
+    icon: Heart,
     label: 'Crises registradas',
     value: stats.crisisLogged,
     accent: 'primary' as const,
   },
   {
-    icon: <Sparkles className="h-5 w-5" />,
+    icon: Trophy,
     label: 'Conquistas',
     value: stats.achievementsUnlocked,
     accent: 'secondary' as const,
   },
   {
-    icon: <ListTodo className="h-5 w-5" />,
+    icon: Brain,
     label: 'Jornadas completas',
     value: stats.journeysCompleted,
     accent: 'surface' as const,
-  },
-  {
-    icon: <NotebookPen className="h-5 w-5" />,
-    label: 'Reflexoes respondidas',
-    value: stats.reflectionsAnswered,
-    accent: 'surface' as const,
-  },
-  {
-    icon: <User className="h-5 w-5" />,
-    label: 'Favoritos',
-    value: stats.favoriteVideos,
-    accent: 'secondary' as const,
   },
 ];
 
@@ -180,7 +157,7 @@ export default function ProfilePage() {
         setStats(data.stats);
         setStatsError(null);
       } catch (error) {
-        console.error('Stats error:', error);
+        logger.error('Failed to load profile stats', error, 'ProfilePage');
         setStatsError('Nao foi possivel carregar estatisticas agora');
       } finally {
         setIsLoadingStats(false);
@@ -197,8 +174,8 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-main)]">
+        <Spinner size="md" />
       </div>
     );
   }
@@ -208,59 +185,60 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen">
       <Header />
-      <PageTransition>
-        <div className="mobile-container space-y-6 px-4 py-6">
+      <main>
+        <PageTransition>
+          <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil' },
+            ]}
+          />
+
+          {/* Avatar e Info */}
           <Card className="flex flex-col items-center gap-4 text-center">
-            <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-primary/40 bg-primary/10">
-              {user.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt={`${user.firstName} ${user.lastName}`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-primary">
-                  {user.firstName.charAt(0)}
-                  {user.lastName.charAt(0)}
-                </div>
-              )}
-            </div>
+            <Avatar
+              src={user.profilePicture || undefined}
+              alt={`${user.firstName} ${user.lastName}`}
+              fallback={`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
+              size="xl"
+            />
 
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-text-primary">
                 {user.firstName} {user.lastName}
               </h2>
-              <p className="mt-1 text-sm text-gray-500">{user.age} anos</p>
+              <p className="mt-1 text-sm text-text-secondary">{user.age} anos</p>
             </div>
 
-            <span
-              className={`rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-wide ${diagnosisDetails.badgeClass}`}
-            >
+            <Badge variant={diagnosisDetails.badgeClass as any}>
               {diagnosisDetails.label}
-            </span>
+            </Badge>
           </Card>
 
+          {/* Estatísticas */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-800">
-                Seus numeros
+              <h3 className="text-base font-semibold text-text-primary">
+                Seus números
               </h3>
               {stats && (
-                <p className="text-xs text-gray-400">
-                  {stats.currentStreak} dias seguidos · recorde de{' '}
-                  {stats.longestStreak} dias
+                <p className="text-xs text-text-tertiary flex items-center gap-1">
+                  <OptimizedIcon icon={Fire} size={14} className="text-warning" />
+                  {stats.currentStreak} dias
                 </p>
               )}
             </div>
 
             {isLoadingStats && (
-              <div className="grid gap-3">
-                {[...Array(3)].map((_, index) => (
+              <div className="grid grid-cols-2 gap-3">
+                {[...Array(4)].map((_, index) => (
                   <Card
                     key={index}
-                    className="h-20 animate-pulse bg-gray-100/80"
+                    className="h-20 animate-pulse bg-surface-elevated"
                   />
                 ))}
               </div>
@@ -270,12 +248,12 @@ export default function ProfilePage() {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="grid gap-3"
+                className="grid grid-cols-2 gap-3"
               >
                 {statCardsConfig(stats).map((item, index) => (
                   <StatCard
                     key={`${item.label}-${index}`}
-                    icon={item.icon}
+                    icon={<OptimizedIcon icon={item.icon} size={20} weight="duotone" />}
                     label={item.label}
                     value={item.value}
                     accent={item.accent}
@@ -285,48 +263,49 @@ export default function ProfilePage() {
             )}
 
             {statsError && (
-              <Card className="border border-red-200 bg-red-50 text-sm text-red-600">
+              <Card className="border border-error/20 bg-error/10 text-sm text-error">
                 {statsError}
               </Card>
             )}
           </section>
 
+          {/* Menu de ações */}
           <section className="space-y-4">
-            <h3 className="text-base font-semibold text-gray-800">
-              Acoes rapidas
+            <h3 className="text-base font-semibold text-text-primary">
+              Ações rápidas
             </h3>
             <div className="grid gap-3">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Card
-                    key={item.href}
-                    onClick={() => router.push(item.href)}
-                    className="flex items-center justify-between gap-4 border border-gray-100"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl ${item.accent}`}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">
-                          {item.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {item.description}
-                        </p>
-                      </div>
+              {menuItems.map((item) => (
+                <Card
+                  key={item.href}
+                  clickable
+                  onClick={() => router.push(item.href)}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl"
+                      style={{ backgroundColor: item.bgColor }}
+                    >
+                      <OptimizedIcon icon={item.icon} size={20} weight="duotone" className="text-[var(--module-text)]" />
                     </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Card>
-                );
-              })}
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-text-secondary">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                  <OptimizedIcon icon={CaretRight} size={20} weight="bold" className="text-text-tertiary" />
+                </Card>
+              ))}
             </div>
           </section>
         </div>
       </PageTransition>
+      </main>
     </div>
   );
 }

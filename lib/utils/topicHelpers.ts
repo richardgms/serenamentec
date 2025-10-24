@@ -3,6 +3,15 @@
  * Helpers for working with neurodivergence topics
  */
 
+import type { Icon, IconWeight } from 'phosphor-react'
+
+/**
+ * Get topic icon name for a given topic type
+ */
+export function getTopicIconName(type: TopicType): string {
+  return topicInfo[type].iconName;
+}
+
 export type TopicType =
   | 'SENSORY_SENSITIVITY'
   | 'SOCIAL_COMMUNICATION'
@@ -20,6 +29,7 @@ export interface TopicInfo {
   title: string;
   subtitle: string;
   emoji: string;
+  iconName: string;
   color: string;
   gradient: string;
 }
@@ -33,6 +43,7 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Sensibilidade Sensorial',
     subtitle: 'Como você percebe o mundo ao seu redor',
     emoji: '👁️',
+    iconName: 'Eye',
     color: '#84C2BE',
     gradient: 'from-primary/20 to-primary/5',
   },
@@ -41,6 +52,7 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Comunicação Social',
     subtitle: 'Interações e conexões com outras pessoas',
     emoji: '💬',
+    iconName: 'ChatCircle',
     color: '#ACFFF9',
     gradient: 'from-secondary/20 to-secondary/5',
   },
@@ -49,14 +61,16 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Rotinas e Rituais',
     subtitle: 'Padrões e previsibilidade no dia a dia',
     emoji: '📅',
+    iconName: 'Calendar',
     color: '#EFFFEA',
-    gradient: 'from-surface/60 to-surface/20',
+    gradient: 'from-[var(--surface-card)]/60 to-[var(--surface-card)]/20',
   },
   HYPERFOCUS: {
     type: 'HYPERFOCUS',
     title: 'Hiperfoco',
     subtitle: 'Atenção intensa em atividades de interesse',
     emoji: '🎯',
+    iconName: 'Target',
     color: '#84C2BE',
     gradient: 'from-primary/20 to-primary/5',
   },
@@ -65,6 +79,7 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Stimming',
     subtitle: 'Movimentos e comportamentos de autorregulação',
     emoji: '🤲',
+    iconName: 'HandsClapping',
     color: '#ACFFF9',
     gradient: 'from-secondary/20 to-secondary/5',
   },
@@ -73,14 +88,16 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Masking',
     subtitle: 'Camuflagem de características neurodivergentes',
     emoji: '🎭',
+    iconName: 'MaskHappy',
     color: '#EFFFEA',
-    gradient: 'from-surface/60 to-surface/20',
+    gradient: 'from-[var(--surface-card)]/60 to-[var(--surface-card)]/20',
   },
   SENSORY_OVERLOAD: {
     type: 'SENSORY_OVERLOAD',
     title: 'Sobrecarga Sensorial',
     subtitle: 'Quando os estímulos são demais',
     emoji: '⚠️',
+    iconName: 'WarningCircle',
     color: '#84C2BE',
     gradient: 'from-primary/20 to-primary/5',
   },
@@ -89,6 +106,7 @@ export const topicInfo: Record<TopicType, TopicInfo> = {
     title: 'Função Executiva',
     subtitle: 'Planejamento, organização e tomada de decisões',
     emoji: '🧠',
+    iconName: 'Brain',
     color: '#ACFFF9',
     gradient: 'from-secondary/20 to-secondary/5',
   },

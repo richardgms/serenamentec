@@ -3,12 +3,17 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser as useClerkUser } from '@clerk/nextjs';
-import { Loader2, Upload } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/navigation/Header';
+import { Breadcrumb } from '@/components/navigation/Breadcrumb';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import PageTransition from '@/components/transitions/PageTransition';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Upload } from '@/lib/constants/icons';
 import { useUIStore } from '@/lib/store/uiStore';
+import { logger } from '@/lib/utils/logger';
 import { useUser } from '@/lib/hooks/useUser';
 import { DIAGNOSIS_OPTIONS } from '@/lib/constants/profile';
 
@@ -19,6 +24,21 @@ interface ProfileFormState {
   diagnosisType: string;
   profilePicture: string;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 export default function ProfileEditPage() {
   const router = useRouter();
@@ -63,7 +83,7 @@ export default function ProfileEditPage() {
         });
         setError(null);
       } catch (err) {
-        console.error('Profile fetch error:', err);
+        logger.error('Failed to fetch profile data', err, 'ProfileEditPage');
         setError('Nao foi possivel carregar seus dados agora.');
       } finally {
         setIsLoading(false);
@@ -89,8 +109,10 @@ export default function ProfileEditPage() {
 
     try {
       setIsUploadingPhoto(true);
-      const updatedUser = await clerkUser.setProfileImage({ file });
-      const imageUrl = updatedUser?.imageUrl ?? '';
+      await clerkUser.setProfileImage({ file });
+      // Reload user to get updated imageUrl
+      await clerkUser.reload();
+      const imageUrl = clerkUser.imageUrl ?? '';
 
       setForm((prev) => ({
         ...prev,
@@ -150,7 +172,7 @@ export default function ProfileEditPage() {
       await refetch();
       router.push('/profile');
     } catch (saveError) {
-      console.error('Save profile error:', saveError);
+      logger.error('Failed to save profile changes', saveError, 'ProfileEditPage');
       showToast('Nao foi possivel salvar as alteracoes', 'error');
     } finally {
       setIsSaving(false);
@@ -159,27 +181,51 @@ export default function ProfileEditPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-main)]">
+        <Spinner size="md" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="min-h-screen bg-[var(--surface-main)] pb-10">
       <Header />
+      <main>
       <PageTransition>
-        <div className="mobile-container px-4 py-6">
+        <div className="max-w-[428px] mx-auto px-4 py-6 space-y-6">
+          {/* Breadcrumb */}
+          <Breadcrumb
+            items={[
+              { label: 'Home', href: '/home' },
+              { label: 'Perfil', href: '/profile' },
+              { label: 'Editar perfil' },
+            ]}
+          />
+
           {error && (
-            <Card className="mb-4 border border-red-200 bg-red-50 text-sm text-red-600">
+            <Card className="mb-4 text-sm" style={{
+              borderColor: 'var(--error)',
+              backgroundColor: 'var(--error-bg)',
+              color: 'var(--error)'
+            }}>
               {error}
             </Card>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Card className="space-y-4">
-              <div className="flex flex-col items-center gap-4 text-center">
-                <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-primary/40 bg-primary/10">
+          <motion.form
+            onSubmit={handleSubmit}
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
+                <div className="flex flex-col items-center gap-4 text-center">
+                <div className="relative h-24 w-24 overflow-hidden rounded-full" style={{
+                  border: '4px solid var(--primary-border)',
+                  backgroundColor: 'var(--primary-bg)'
+                }}>
                   {form.profilePicture ? (
                     <img
                       src={form.profilePicture}
@@ -187,7 +233,7 @@ export default function ProfileEditPage() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-primary">
+                    <div className="flex h-full w-full items-center justify-center text-3xl font-semibold" style={{ color: 'var(--primary)' }}>
                       {form.firstName.charAt(0) || 'S'}
                       {form.lastName.charAt(0) || 'U'}
                     </div>
@@ -195,8 +241,12 @@ export default function ProfileEditPage() {
                 </div>
 
                 <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-                  <label className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary/10 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/20 transition-smooth">
-                    <Upload className="h-4 w-4" />
+                  <label className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-80" style={{
+                    backgroundColor: 'var(--primary-bg)',
+                    color: 'var(--primary)'
+                  }}
+                  >
+                    <OptimizedIcon icon={Upload} size={16} weight="regular" />
                     <span>{isUploadingPhoto ? 'Enviando...' : 'Trocar foto'}</span>
                     <input
                       type="file"
@@ -210,18 +260,27 @@ export default function ProfileEditPage() {
                     <button
                       type="button"
                       onClick={handleRemovePhoto}
-                      className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 hover:bg-gray-100 transition-smooth"
+                      className="rounded-xl px-4 py-2 text-sm font-semibold transition-all"
+                      style={{
+                        border: '1px solid var(--border-light)',
+                        color: 'var(--text-tertiary)',
+                        backgroundColor: 'var(--surface-card)'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-main)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-card)'}
                     >
                       Remover
                     </button>
                   )}
                 </div>
-              </div>
-            </Card>
+                </div>
+              </Card>
+            </motion.div>
 
-            <Card className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-700" htmlFor="firstName">
+            <motion.div variants={itemVariants}>
+              <Card className="space-y-4">
+                <div>
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="firstName">
                   Primeiro nome
                 </label>
                 <input
@@ -229,14 +288,27 @@ export default function ProfileEditPage() {
                   name="firstName"
                   value={form.firstName}
                   onChange={handleInputChange}
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mt-2 w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px var(--primary-shadow)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   placeholder="Como gostaria de ser chamado"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-gray-700" htmlFor="lastName">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="lastName">
                   Sobrenome
                 </label>
                 <input
@@ -244,14 +316,27 @@ export default function ProfileEditPage() {
                   name="lastName"
                   value={form.lastName}
                   onChange={handleInputChange}
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mt-2 w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px var(--primary-shadow)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   placeholder="Sobrenome"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-gray-700" htmlFor="age">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="age">
                   Idade
                 </label>
                 <input
@@ -262,14 +347,27 @@ export default function ProfileEditPage() {
                   max={120}
                   value={form.age}
                   onChange={handleInputChange}
-                  className="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mt-2 w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px var(--primary-shadow)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   placeholder="Sua idade"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-gray-700" htmlFor="diagnosisType">
+                <label className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }} htmlFor="diagnosisType">
                   Diagnostico
                 </label>
                 <select
@@ -277,7 +375,20 @@ export default function ProfileEditPage() {
                   name="diagnosisType"
                   value={form.diagnosisType}
                   onChange={handleInputChange}
-                  className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-800 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="mt-2 w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={{
+                    border: '2px solid var(--border-light)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-primary)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'var(--primary)';
+                    e.target.style.boxShadow = '0 0 0 3px var(--primary-shadow)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'var(--border-light)';
+                    e.target.style.boxShadow = 'none';
+                  }}
                 >
                   <option value="">Escolher...</option>
                   {DIAGNOSIS_OPTIONS.map((option) => (
@@ -287,13 +398,14 @@ export default function ProfileEditPage() {
                   ))}
                 </select>
               </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <div className="flex gap-3">
+            <motion.div variants={itemVariants} className="flex gap-3">
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1 border-gray-200 text-gray-600 hover:bg-gray-100"
+                className="flex-1"
                 onClick={() => router.back()}
                 disabled={isSaving}
               >
@@ -305,19 +417,13 @@ export default function ProfileEditPage() {
                 disabled={isSaving}
                 className="flex-1"
               >
-                {isSaving ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Salvando
-                  </span>
-                ) : (
-                  'Salvar alteracoes'
-                )}
+                {isSaving ? 'Salvando...' : 'Salvar alteracoes'}
               </Button>
-            </div>
-          </form>
+            </motion.div>
+          </motion.form>
         </div>
       </PageTransition>
+      </main>
     </div>
   );
 }

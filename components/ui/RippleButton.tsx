@@ -45,7 +45,7 @@ export function RippleButton({
 
   const variants = {
     primary: 'bg-primary text-white hover:bg-primary/90 active:bg-primary/80 focus:ring-2 focus:ring-primary/30 focus:ring-offset-2',
-    secondary: 'bg-secondary text-gray-800 hover:bg-secondary/90 active:bg-secondary/80 focus:ring-2 focus:ring-secondary/30 focus:ring-offset-2',
+    secondary: 'bg-secondary text-text-primary hover:bg-secondary/90 active:bg-secondary/80 focus:ring-2 focus:ring-secondary/30 focus:ring-offset-2',
     outline: 'border-2 border-primary text-primary hover:bg-primary/10 active:bg-primary/20 focus:ring-2 focus:ring-primary/30',
     ghost: 'text-primary hover:bg-primary/10 active:bg-primary/20 focus:ring-2 focus:ring-primary/20',
   };

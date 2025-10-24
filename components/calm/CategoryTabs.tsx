@@ -70,7 +70,7 @@ export function CategoryTabs({
                 ${
                   isActive
                     ? 'bg-primary text-white shadow-md'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                    : 'bg-white text-text-secondary hover:bg-gray-50 shadow-sm'
                 }
               `}
             >

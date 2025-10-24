@@ -23,7 +23,7 @@ export function ResonateButtons({
 }: ResonateButtonsProps) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-gray-700 mb-3">
+      <p className="text-sm font-medium text-text-secondary mb-3">
         Isso ressoa com você?
       </p>
 
@@ -47,7 +47,7 @@ export function ResonateButtons({
                 ${
                   isSelected
                     ? getResonateColor(option)
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
                 }
               `}
             >

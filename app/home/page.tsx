@@ -6,47 +6,45 @@ import { motion } from 'framer-motion';
 import { useUser } from '@/lib/hooks/useUser';
 import { useUIStore } from '@/lib/store/uiStore';
 import { Header } from '@/components/navigation/Header';
-import { MoodCheckIn } from '@/components/home/MoodCheckIn';
-import { StreakWidget } from '@/components/gamification/StreakWidget';
 import { Card } from '@/components/ui/Card';
-import { Loader2, Wind, Video, Brain, User } from 'lucide-react';
+import { PageTransition } from '@/components/transitions/PageTransition';
+import { Spinner } from '@/components/Loading';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { MoodCheckIn } from '@/components/home/MoodCheckIn';
+import { Wind, VideoCamera, Compass, User } from '@/lib/constants/icons';
 
 const modules = [
   {
     id: 'breathe',
     title: 'Respirar',
-    description: 'Exercícios de respiração guiada',
+    description: 'Exercícios de respiração',
     icon: Wind,
     href: '/breathe',
-    gradient: 'from-primary/20 to-primary/5',
-    iconColor: 'text-primary',
+    bgVar: 'var(--module-breathe)',
   },
   {
     id: 'calm',
     title: 'Acalmar',
-    description: 'Vídeos relaxantes e sons',
-    icon: Video,
+    description: 'Vídeos relaxantes',
+    icon: VideoCamera,
     href: '/calm',
-    gradient: 'from-secondary/20 to-secondary/5',
-    iconColor: 'text-primary',
+    bgVar: 'var(--module-calm)',
   },
   {
     id: 'discover',
     title: 'Conhecer-se',
-    description: 'Jornadas de autoconhecimento',
-    icon: Brain,
+    description: 'Jornadas e tópicos',
+    icon: Compass,
     href: '/discover',
-    gradient: 'from-surface/60 to-surface/20',
-    iconColor: 'text-primary',
+    bgVar: 'var(--module-discover)',
   },
   {
     id: 'profile',
     title: 'Perfil',
-    description: 'Suas informações e histórico',
+    description: 'Suas informações',
     icon: User,
     href: '/profile',
-    gradient: 'from-primary/10 to-primary/5',
-    iconColor: 'text-primary',
+    bgVar: 'var(--module-profile)',
   },
 ];
 
@@ -85,8 +83,8 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-[var(--surface-main)]">
+        <Spinner size="md" />
       </div>
     );
   }
@@ -96,87 +94,91 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-1 flex-col">
       <Header />
 
-      <div className="mobile-container px-4 py-6">
-        {/* Welcome Message */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 text-center"
-        >
-          <h1 className="mb-2 text-2xl font-bold text-gray-800">
-            Olá, {user.firstName}! 👋
-          </h1>
-          <p className="text-sm text-gray-600">
-            Como podemos ajudar você hoje?
-          </p>
-        </motion.div>
+      <main>
+        <PageTransition>
+          <div className="mx-auto max-w-[428px] space-y-6 px-4 py-6">
+          {/* Mood Check-in Widget */}
+          <MoodCheckIn />
 
-        {/* Mood Check-in Widget */}
-        <MoodCheckIn />
+          {/* Welcome Message */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <h1 className="text-3xl font-bold text-text-primary mb-2">
+              Olá, {user.firstName}! 👋
+            </h1>
+            <p className="text-sm text-text-secondary">
+              Como podemos ajudar você hoje?
+            </p>
+          </motion.div>
 
-        {/* Streak Widget */}
-        <StreakWidget />
-
-        {/* Module Cards Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-2 gap-4"
-        >
-          {modules.map((module) => {
-            const Icon = module.icon;
-            return (
-              <motion.div key={module.id} variants={itemVariants}>
+          {/* Module Cards Grid 2x2 */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-2 gap-4"
+          >
+            {modules.map((module) => (
+              <motion.div 
+                key={module.id} 
+                variants={itemVariants}
+              >
                 <Card
+                  clickable
                   onClick={() => router.push(module.href)}
-                  className={`
-                    relative overflow-hidden border border-gray-100
-                    bg-gradient-to-br ${module.gradient}
-                    h-40 flex flex-col items-center justify-center
-                    text-center p-4
-                    cursor-pointer touch-feedback hover:scale-105
-                    transition-all duration-300
-                  `}
+                  className="aspect-square flex flex-col items-center justify-center text-center p-6 gap-3 transition-all duration-150"
+                  style={{ backgroundColor: module.bgVar }}
                 >
-                  {/* Icon */}
+                  {/* Icon Phosphor Duotone 48px */}
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <Icon className={`h-12 w-12 mb-3 ${module.iconColor}`} />
+                    <OptimizedIcon 
+                      icon={module.icon} 
+                      size={48} 
+                      weight="duotone"
+                      className="transition-transform text-[var(--module-text)]"
+                    />
                   </motion.div>
 
                   {/* Title */}
-                  <h3 className="text-base font-semibold text-gray-800 mb-1">
-                    {module.title}
-                  </h3>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-1 text-[var(--module-text)]">
+                      {module.title}
+                    </h3>
 
-                  {/* Description */}
-                  <p className="text-xs text-gray-600 leading-tight">
-                    {module.description}
-                  </p>
+                    {/* Description */}
+                    <p className="text-xs leading-tight text-[var(--module-text)] opacity-70">
+                      {module.description}
+                    </p>
+                  </div>
                 </Card>
               </motion.div>
-            );
-          })}
-        </motion.div>
+            ))}
+          </motion.div>
 
-        {/* Footer Message */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-8 text-center"
-        >
-          <p className="text-sm text-gray-500">
-            Feito com 💚 para você
-          </p>
-        </motion.div>
-      </div>
+          {/* Footer Message */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-center pt-4"
+          >
+            <p className="text-sm text-text-tertiary">
+              Feito com 💚 para você
+            </p>
+          </motion.div>
+        </div>
+      </PageTransition>
+      </main>
     </div>
   );
 }

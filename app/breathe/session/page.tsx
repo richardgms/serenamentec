@@ -14,7 +14,9 @@ import {
   calculateTotalCycleDuration,
 } from '@/lib/utils/breathingPatterns';
 import { vibratePattern } from '@/lib/utils/vibration';
-import { Pause, Play, X, Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/Loading';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Pause, Play, ArrowLeft } from '@/lib/constants/icons';
 
 type SessionState = 'config' | 'running' | 'paused' | 'completed';
 
@@ -209,17 +211,15 @@ export default function BreathingSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[var(--surface-main)] flex items-center justify-center">
+        <Spinner size="md" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-
-      <div className="mobile-container px-4 py-6">
+    <div className="min-h-screen flex flex-col">
+      <main className="max-w-[428px] mx-auto px-4 w-full flex-1 flex flex-col">
         <AnimatePresence mode="wait">
           {/* Config Screen */}
           {sessionState === 'config' && (
@@ -228,9 +228,9 @@ export default function BreathingSessionPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center max-w-sm mx-auto pt-12"
+              className="text-center max-w-sm mx-auto py-12 flex-1 flex flex-col justify-center"
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+              <h2 className="text-2xl font-bold text-text-primary mb-6">
                 Quantos ciclos você quer fazer?
               </h2>
 
@@ -246,13 +246,13 @@ export default function BreathingSessionPage() {
                   onChange={(e) => setCyclesTarget(parseInt(e.target.value))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <div className="flex justify-between text-xs text-text-tertiary mt-2">
                   <span>3</span>
                   <span>10</span>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 mb-8">
+              <p className="text-sm text-text-secondary mb-8">
                 Duração aproximada:{' '}
                 <strong>
                   {Math.ceil(
@@ -275,10 +275,11 @@ export default function BreathingSessionPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="flex-1 flex flex-col justify-center py-8"
             >
               {/* Cycle Counter */}
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600">
+              <div className="text-center mb-8">
+                <p className="text-sm text-text-secondary">
                   Ciclo {cyclesCompleted + 1} de {cyclesTarget}
                 </p>
                 <div className="flex gap-1 justify-center mt-2">
@@ -299,49 +300,57 @@ export default function BreathingSessionPage() {
 
               {/* Breathing Circle */}
               {sessionState === 'running' && (
-                <BreathingCircle
-                  phase={currentPhase}
-                  timeRemaining={timeRemaining}
-                  totalTime={patternPhases[currentPhase] || 0}
-                />
+                <div className="flex-1 flex items-center justify-center py-8 px-4">
+                  <BreathingCircle
+                    phase={currentPhase}
+                    timeRemaining={timeRemaining}
+                    totalTime={patternPhases[currentPhase] || 0}
+                  />
+                </div>
               )}
 
               {sessionState === 'paused' && (
-                <div className="text-center py-20">
-                  <Pause className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-700">
+                <div className="text-center flex-1 flex flex-col items-center justify-center py-20">
+                  <OptimizedIcon icon={Pause} size={64} weight="duotone" className="text-text-tertiary mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-text-primary">
                     Pausado
                   </h3>
+                  <p className="text-sm text-text-secondary mt-2">
+                    Clique em continuar quando estiver pronto
+                  </p>
                 </div>
               )}
 
               {/* Controls */}
-              <div className="flex gap-3 mt-8">
+              <div className="flex gap-3 mt-8 pb-4">
                 <Button
-                  variant="secondary"
-                  className="flex-1"
+                  variant="ghost"
+                  size="lg"
+                  className="flex-1 flex items-center justify-center gap-2"
                   onClick={handleStop}
                 >
-                  <X className="mr-2 h-5 w-5" />
-                  Parar
+                  <OptimizedIcon icon={ArrowLeft} size={20} />
+                  Sair
                 </Button>
 
                 {sessionState === 'paused' ? (
                   <Button
                     variant="primary"
-                    className="flex-1"
+                    size="lg"
+                    className="flex-1 flex items-center justify-center gap-2"
                     onClick={handleResume}
                   >
-                    <Play className="mr-2 h-5 w-5" />
+                    <OptimizedIcon icon={Play} size={20} weight="fill" />
                     Continuar
                   </Button>
                 ) : (
                   <Button
                     variant="primary"
-                    className="flex-1"
+                    size="lg"
+                    className="flex-1 flex items-center justify-center gap-2"
                     onClick={handlePause}
                   >
-                    <Pause className="mr-2 h-5 w-5" />
+                    <OptimizedIcon icon={Pause} size={20} weight="fill" />
                     Pausar
                   </Button>
                 )}
@@ -356,7 +365,7 @@ export default function BreathingSessionPage() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="text-center max-w-sm mx-auto pt-12"
+              className="text-center max-w-sm mx-auto flex-1 flex flex-col justify-center py-12"
             >
               <motion.div
                 initial={{ scale: 0 }}
@@ -366,21 +375,21 @@ export default function BreathingSessionPage() {
                 <span className="text-8xl mb-6 block">✨</span>
               </motion.div>
 
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              <h2 className="text-3xl font-bold text-text-primary mb-4">
                 Parabéns!
               </h2>
 
-              <p className="text-gray-600 mb-8">
+              <p className="text-text-secondary mb-8">
                 Você completou {cyclesCompleted} ciclos de respiração
               </p>
 
-              <div className="bg-surface rounded-2xl p-6 mb-8">
+              <div className="bg-[var(--surface-card)] rounded-2xl p-6 mb-8">
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div>
                     <p className="text-3xl font-bold text-primary">
                       {cyclesCompleted}
                     </p>
-                    <p className="text-sm text-gray-600">Ciclos</p>
+                    <p className="text-sm text-text-secondary">Ciclos</p>
                   </div>
                   <div>
                     <p className="text-3xl font-bold text-primary">
@@ -390,7 +399,7 @@ export default function BreathingSessionPage() {
                           60
                       )}
                     </p>
-                    <p className="text-sm text-gray-600">Minutos</p>
+                    <p className="text-sm text-text-secondary">Minutos</p>
                   </div>
                 </div>
               </div>
@@ -401,7 +410,7 @@ export default function BreathingSessionPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </main>
     </div>
   );
 }

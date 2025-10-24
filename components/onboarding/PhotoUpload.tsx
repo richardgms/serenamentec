@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, User } from 'lucide-react';
 import Image from 'next/image';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { Camera, User } from '@/lib/constants/icons';
 import { compressImage, isValidImage, formatFileSize } from '@/lib/utils/imageOptimization';
 
 interface PhotoUploadProps {
@@ -71,7 +72,7 @@ export default function PhotoUpload({ value, onChange }: PhotoUploadProps) {
     <div className="flex flex-col items-center gap-3">
       <div
         onClick={handleClick}
-        className="relative h-24 w-24 cursor-pointer overflow-hidden rounded-full bg-surface transition-smooth hover:opacity-80"
+        className="relative h-24 w-24 cursor-pointer overflow-hidden rounded-full bg-[var(--surface-card)] transition-smooth hover:opacity-80"
       >
         {preview ? (
           <Image
@@ -82,13 +83,13 @@ export default function PhotoUpload({ value, onChange }: PhotoUploadProps) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <User className="h-12 w-12 text-gray-400" />
+            <OptimizedIcon icon={User} size={48} weight="duotone" className="text-gray-400" />
           </div>
         )}
 
         {/* Overlay with camera icon */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-smooth hover:opacity-100">
-          <Camera className="h-6 w-6 text-white" />
+          <OptimizedIcon icon={Camera} size={24} weight="bold" className="text-white" />
         </div>
 
         {isLoading && (
@@ -107,7 +108,7 @@ export default function PhotoUpload({ value, onChange }: PhotoUploadProps) {
       />
 
       <div className="text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-text-tertiary">
           {preview ? 'Clique para alterar' : 'Adicionar foto (opcional)'}
         </p>
         {compressionInfo && (

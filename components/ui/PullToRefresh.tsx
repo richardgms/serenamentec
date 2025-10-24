@@ -7,7 +7,8 @@
 
 import { ReactNode, useRef, useState, TouchEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { ArrowClockwise } from '@/lib/constants/icons';
 import { useHaptic } from '@/lib/hooks/useHaptic';
 
 export interface PullToRefreshProps {
@@ -128,12 +129,15 @@ export function PullToRefresh({
                     : { duration: 0 }
                 }
               >
-                <RefreshCw
-                  className={`h-6 w-6 ${
+                <OptimizedIcon
+                  icon={ArrowClockwise}
+                  size={24}
+                  weight="bold"
+                  color={
                     isReady || isRefreshing
-                      ? 'text-primary'
-                      : 'text-gray-400'
-                  }`}
+                      ? 'var(--primary)'
+                      : 'var(--text-tertiary)'
+                  }
                 />
               </motion.div>
 
@@ -141,7 +145,7 @@ export function PullToRefresh({
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: pullDistance > 20 ? 1 : 0 }}
-                className="text-xs text-gray-600"
+                className="text-xs text-text-secondary"
               >
                 {isRefreshing
                   ? 'Atualizando...'

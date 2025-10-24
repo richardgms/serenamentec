@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { journeyInfo } from '@/lib/utils/journeyHelpers';
 import { getRandomMessage } from '@/lib/encouragement/messages';
@@ -214,7 +215,7 @@ export async function POST(req: NextRequest) {
         data: {
           currentStep: step,
           completedSteps: updatedCompletedSteps,
-          stepNotes: updatedNotes,
+          stepNotes: updatedNotes as Prisma.InputJsonValue,
           completed: isCompleted,
           completedAt: isCompleted && !progress.completed ? new Date() : progress.completedAt,
           lastAccessAt: new Date(),

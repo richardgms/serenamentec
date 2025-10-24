@@ -3,56 +3,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserStore } from '@/lib/store/userStore';
-import { Smile, Meh, Frown, Angry, Annoyed } from 'lucide-react';
+import { useHaptic } from '@/lib/hooks/useHaptic';
+import { colors } from '@/docs/visual/design-tokens';
 
 type MoodType = 'HAPPY' | 'NEUTRAL' | 'ANXIOUS' | 'SAD' | 'ANGRY';
 
 const moods = [
-  {
-    type: 'HAPPY' as MoodType,
-    Icon: Smile,
-    emoji: '😊',
-    label: 'Feliz',
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
-    hoverBg: 'hover:bg-green-100',
-  },
-  {
-    type: 'NEUTRAL' as MoodType,
-    Icon: Meh,
-    emoji: '😐',
-    label: 'Neutro',
-    color: 'text-gray-500',
-    bgColor: 'bg-gray-50',
-    hoverBg: 'hover:bg-gray-100',
-  },
-  {
-    type: 'ANXIOUS' as MoodType,
-    Icon: Annoyed,
-    emoji: '😰',
-    label: 'Ansioso',
-    color: 'text-yellow-500',
-    bgColor: 'bg-yellow-50',
-    hoverBg: 'hover:bg-yellow-100',
-  },
-  {
-    type: 'SAD' as MoodType,
-    Icon: Frown,
-    emoji: '😔',
-    label: 'Triste',
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    hoverBg: 'hover:bg-blue-100',
-  },
-  {
-    type: 'ANGRY' as MoodType,
-    Icon: Angry,
-    emoji: '😤',
-    label: 'Irritado',
-    color: 'text-red-500',
-    bgColor: 'bg-red-50',
-    hoverBg: 'hover:bg-red-100',
-  },
+  { type: 'ANGRY' as MoodType, emoji: '😢', value: 1, label: 'Muito mal', color: colors.mood.veryBad },
+  { type: 'SAD' as MoodType, emoji: '😕', value: 2, label: 'Mal', color: colors.mood.bad },
+  { type: 'NEUTRAL' as MoodType, emoji: '😐', value: 3, label: 'Neutro', color: colors.mood.neutral },
+  { type: 'ANXIOUS' as MoodType, emoji: '🙂', value: 4, label: 'Bom', color: colors.mood.good },
+  { type: 'HAPPY' as MoodType, emoji: '😊', value: 5, label: 'Muito bom', color: colors.mood.veryGood },
 ];
 
 export function MoodCheckIn() {
@@ -60,6 +21,7 @@ export function MoodCheckIn() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const { hasCheckedMoodToday, setLastMoodCheckIn } = useUserStore();
+  const { impact } = useHaptic();
 
   // Don't show if user already checked mood today
   if (hasCheckedMoodToday()) {
@@ -69,6 +31,7 @@ export function MoodCheckIn() {
   const handleMoodSelect = async (mood: MoodType) => {
     setIsSubmitting(true);
     setSelectedMood(mood);
+    impact('medium');
 
     try {
       // Save mood to API
@@ -106,13 +69,13 @@ export function MoodCheckIn() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9 }}
-          className="mb-6 rounded-2xl bg-surface p-6 card-shadow"
+          className="mb-6 rounded-2xl bg-[var(--surface-card)] p-6 card-shadow"
         >
-          <h3 className="mb-4 text-center text-base font-semibold text-gray-800">
-            Como você está se sentindo hoje?
+          <h3 className="mb-6 text-center text-lg font-semibold text-text-primary">
+            Como você está hoje?
           </h3>
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-center gap-3">
             {moods.map((mood, index) => (
               <motion.button
                 key={mood.type}
@@ -123,22 +86,41 @@ export function MoodCheckIn() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleMoodSelect(mood.type)}
                 disabled={isSubmitting}
-                className={`
-                  flex flex-col items-center gap-2 rounded-xl p-3
-                  ${mood.bgColor} ${mood.hoverBg}
-                  transition-smooth tap-highlight-none
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  flex-1 min-w-0
-                `}
+                className="relative w-12 h-12 flex items-center justify-center text-[48px] leading-none rounded-full transition-all duration-150 tap-highlight-none disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  boxShadow: selectedMood === mood.type
+                    ? `0 0 0 4px ${mood.color}40`
+                    : 'none',
+                }}
                 aria-label={mood.label}
               >
-                <span className="text-3xl">{mood.emoji}</span>
-                <span className={`text-xs font-medium ${mood.color}`}>
-                  {mood.label}
-                </span>
+                <motion.span
+                  className="drop-shadow-sm"
+                  style={{
+                    filter: selectedMood === mood.type 
+                      ? `drop-shadow(0 0 8px ${mood.color}40)` 
+                      : 'none',
+                  }}
+                  animate={{
+                    scale: selectedMood === mood.type ? 1.2 : 1,
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {mood.emoji}
+                </motion.span>
               </motion.button>
             ))}
           </div>
+
+          {selectedMood && (
+            <motion.p
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 text-sm text-text-secondary text-center"
+            >
+              {moods.find((m) => m.type === selectedMood)?.label}
+            </motion.p>
+          )}
         </motion.div>
       ) : (
         <motion.div

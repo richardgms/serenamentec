@@ -1,76 +1,56 @@
-'use client';
+'use client'
 
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/lib/hooks/useUser';
-import { useUIStore } from '@/lib/store/uiStore';
-import { ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useTheme } from '@/lib/design/theme'
+import { Avatar } from '@/components/ui/Avatar'
+import { useUser } from '@/lib/hooks/useUser'
+import { Sun, Moon } from '@/lib/constants/icons'
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 
-interface HeaderProps {
-  showBack?: boolean;
-  title?: string;
-}
+export function Header() {
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const { user } = useUser()
+  const router = useRouter()
 
-export function Header({ showBack = false, title }: HeaderProps) {
-  const router = useRouter();
-  const { user } = useUser();
-  const { pageTitle, showBackButton } = useUIStore();
-
-  const displayTitle = title || pageTitle;
-  const displayBackButton = showBack || showBackButton;
-
-  const handleBack = () => {
-    router.back();
-  };
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'light' ? 'dark' : 'light')
+  }
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-gray-200"
-    >
-      <div className="mobile-container px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left: Back button or Logo */}
-          <div className="flex items-center gap-3">
-            {displayBackButton && (
-              <button
-                onClick={handleBack}
-                className="tap-highlight-none touch-feedback rounded-lg p-2 hover:bg-gray-100 transition-smooth"
-                aria-label="Voltar"
-              >
-                <ArrowLeft className="h-5 w-5 text-gray-600" />
-              </button>
-            )}
+    <header className="sticky top-0 z-20 transition-colors duration-300">
+      <div className="max-w-[428px] mx-auto flex h-16 items-center justify-between border-b border-border-subtle bg-[var(--surface-main)]/80 backdrop-blur-md px-4">
+        {/* Avatar */}
+        <button
+          onClick={() => router.push('/profile')}
+          className="transition-transform duration-150 hover:scale-105 active:scale-95"
+          aria-label="Ir para perfil"
+        >
+          <Avatar
+            src={user?.profilePicture || undefined}
+            name={user?.firstName || 'Usuário'}
+            size="sm"
+          />
+        </button>
 
-            {displayTitle && (
-              <h1 className="text-lg font-semibold text-gray-800">
-                {displayTitle}
-              </h1>
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg hover:bg-primary/10 transition-colors duration-150"
+          aria-label="Alternar tema"
+        >
+          <motion.div
+            animate={{ rotate: resolvedTheme === 'dark' ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {resolvedTheme === 'dark' ? (
+              <OptimizedIcon icon={Moon} size={24} className="text-primary" />
+            ) : (
+              <OptimizedIcon icon={Sun} size={24} className="text-primary" />
             )}
-          </div>
-
-          {/* Right: User avatar */}
-          {user && (
-            <div className="flex items-center gap-2">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full bg-primary/10 border-2 border-primary">
-                {user.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt={`${user.firstName} ${user.lastName}`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-primary font-semibold text-sm">
-                    {user.firstName.charAt(0)}
-                    {user.lastName.charAt(0)}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+          </motion.div>
+        </button>
       </div>
-    </motion.header>
-  );
+    </header>
+  )
 }

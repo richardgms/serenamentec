@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/Card';
-import { MessageCircle, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { ChatCircle, Check, X, CircleNotch, CaretDown, CaretUp } from '@/lib/constants/icons';
 import { useUIStore } from '@/lib/store/uiStore';
 
 interface DailyReflectionData {
@@ -94,7 +95,7 @@ export function DailyReflectionWidget() {
     return (
       <Card className="mb-6">
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <OptimizedIcon icon={CircleNotch} size={24} weight="bold" className="animate-spin text-primary" />
         </div>
       </Card>
     );
@@ -115,17 +116,17 @@ export function DailyReflectionWidget() {
           answered ? 'bg-green-100' : 'bg-primary/10'
         }`}>
           {answered ? (
-            <Check className="h-5 w-5 text-green-600" />
+            <OptimizedIcon icon={Check} size={20} weight="bold" className="text-green-600" />
           ) : (
-            <MessageCircle className="h-5 w-5 text-primary" />
+            <OptimizedIcon icon={ChatCircle} size={20} weight="duotone" className="text-primary" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-800 mb-1">
+          <h3 className="font-semibold text-text-primary mb-1">
             {answered ? 'Reflexão de hoje ✨' : 'Reflexão do dia'}
           </h3>
-          <p className="text-sm text-gray-600 leading-relaxed">
+          <p className="text-sm text-text-secondary leading-relaxed">
             {todayQuestion.question}
           </p>
 
@@ -133,16 +134,16 @@ export function DailyReflectionWidget() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mt-3 p-3 bg-surface rounded-lg"
+              className="mt-3 p-3 bg-[var(--surface-card)] rounded-lg"
             >
-              <p className="text-sm text-gray-700 italic">
+              <p className="text-sm text-text-secondary italic">
                 &ldquo;{todayReflection.answer}&rdquo;
               </p>
             </motion.div>
           )}
 
           {answered && todayReflection?.skipped && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-text-tertiary mt-2">
               Você pulou esta reflexão hoje
             </p>
           )}
@@ -153,7 +154,7 @@ export function DailyReflectionWidget() {
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="h-5 w-5 text-gray-400" />
+            <OptimizedIcon icon={CaretDown} size={20} weight="bold" className="text-gray-400" />
           </motion.div>
         )}
       </div>
@@ -173,7 +174,7 @@ export function DailyReflectionWidget() {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="Escreva suas reflexões aqui..."
-              className="w-full px-4 py-3 bg-surface rounded-lg border-2 border-transparent focus:border-primary focus:outline-none resize-none transition-colors text-sm"
+              className="w-full px-4 py-3 bg-[var(--surface-card)] rounded-lg border-2 border-transparent focus:border-primary focus:outline-none resize-none transition-colors text-sm"
               rows={5}
               maxLength={1000}
               disabled={isSaving}
@@ -181,7 +182,7 @@ export function DailyReflectionWidget() {
 
             {/* Character count */}
             <div className="flex justify-between items-center mt-2">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-text-tertiary">
                 {answer.length}/1000 caracteres
               </span>
               {answer.length < 10 && answer.length > 0 && (
@@ -200,12 +201,12 @@ export function DailyReflectionWidget() {
               >
                 {isSaving ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <OptimizedIcon icon={CircleNotch} size={16} weight="bold" className="animate-spin" />
                     Salvando...
                   </>
                 ) : (
                   <>
-                    <Check className="h-4 w-4" />
+                    <OptimizedIcon icon={Check} size={16} weight="bold" />
                     Salvar
                   </>
                 )}
@@ -214,14 +215,14 @@ export function DailyReflectionWidget() {
               <button
                 onClick={() => handleSave(true)}
                 disabled={isSaving}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="px-4 py-2 bg-gray-100 text-text-secondary rounded-lg font-medium hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
-                <X className="h-4 w-4" />
+                <OptimizedIcon icon={X} size={16} weight="bold" />
                 Pular
               </button>
             </div>
 
-            <p className="text-xs text-gray-500 mt-3 text-center">
+            <p className="text-xs text-text-tertiary mt-3 text-center">
               Suas reflexões são privadas e apenas você pode vê-las
             </p>
           </motion.div>

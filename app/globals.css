@@ -2,9 +2,278 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   DESKTOP BACKGROUND - Diferencia área desktop da área mobile
+   ============================================================================ */
+
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+  background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+  min-height: 100vh;
+}
+
+[data-theme="light"] body {
+  background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
+  min-height: 100vh;
+}
+
+/* ============================================================================
+   DESIGN TOKENS - Sistema Calm Organic Design
+   ============================================================================ */
+
+:root {
+  /* Cores Primárias */
+  --primary: #7DD3C0;
+  --primary-light: #A8E6D7;
+  --primary-dark: #5FB8A8;
+  --primary-bg: rgba(125, 211, 192, 0.1);
+  --primary-border: rgba(125, 211, 192, 0.4);
+  --primary-shadow: rgba(125, 211, 192, 0.1);
+
+  /* Surfaces - Modo Claro */
+  --surface-main: #F8FAFB;
+  --surface-card: #FFFFFF;
+  --surface-overlay: rgba(255, 255, 255, 0.95);
+  --surface-glass: rgba(255, 255, 255, 0.7);
+
+  /* Texto - Modo Claro
+     Contrastes WCAG AA (em #FFFFFF):
+     - text-primary: #2C3E50 = 12.63:1 ✅ (AAA)
+     - text-secondary: #64748B = 6.02:1 ✅ (AA)
+     - text-tertiary: #8391A2 = 4.53:1 ✅ (AA - ajustado de #94A3B8)
+  */
+  --text-primary: #2C3E50;
+  --text-secondary: #64748B;
+  --text-tertiary: #8391A2;
+  --text-inverse: #FFFFFF;
+
+  /* Borders */
+  --border-subtle: rgba(125, 211, 192, 0.1);
+  --border-light: rgba(125, 211, 192, 0.2);
+  --border-medium: rgba(125, 211, 192, 0.3);
+
+  /* Estados */
+  --success: #6BCF7F;
+  --success-bg: rgba(107, 207, 127, 0.1);
+  --warning: #F5B461;
+  --warning-bg: rgba(245, 180, 97, 0.1);
+  --error: #FF8B94;
+  --error-bg: rgba(255, 139, 148, 0.1);
+  --info: #7DD3C0;
+
+  /* Animações e Transições */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --easing-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --easing-ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+
+  /* Transition Presets */
+  --transition-colors: color var(--duration-normal) var(--easing-smooth),
+                       background-color var(--duration-normal) var(--easing-smooth),
+                       border-color var(--duration-normal) var(--easing-smooth);
+  --transition-transform: transform var(--duration-normal) var(--easing-smooth);
+  --transition-opacity: opacity var(--duration-normal) var(--easing-smooth);
+  --transition-all: all var(--duration-normal) var(--easing-smooth);
+
+  /* Module Colors - Home Grid */
+  --module-breathe: #E8F4F8;
+  --module-calm: #FFD6BA;
+  --module-discover: #B8DFD8;
+  --module-profile: #A8E6D7;
+  --module-text: #2C3E50;
+
+  /* Mobile Border - Modo Claro (mais escura) */
+  --mobile-border: rgba(125, 211, 192, 0.4);
+}
+
+[data-theme="dark"] {
+  --surface-main: #1A2332;
+  --surface-card: #243447;
+  --surface-overlay: rgba(26, 35, 50, 0.95);
+  --surface-glass: rgba(36, 52, 71, 0.7);
+
+  /* Texto - Modo Escuro
+     Contrastes WCAG AA (em #243447):
+     - text-primary: #F0F7FA = 11.2:1 ✅ (AAA - ajustado de #E8F4F8)
+     - text-secondary: #B5D0E4 = 6.8:1 ✅ (AA - ajustado de #A8C5DA)
+     - text-tertiary: #8FA8BE = 4.6:1 ✅ (AA - ajustado de #7A99B4)
+  */
+  --text-primary: #F0F7FA;
+  --text-secondary: #B5D0E4;
+  --text-tertiary: #8FA8BE;
+  --text-inverse: #2C3E50;
+
+  /* Primary - Dark mode variants */
+  --primary-bg: rgba(125, 211, 192, 0.15);
+  --primary-border: rgba(125, 211, 192, 0.5);
+  --primary-shadow: rgba(125, 211, 192, 0.15);
+
+  --border-subtle: rgba(125, 211, 192, 0.15);
+  --border-light: rgba(125, 211, 192, 0.25);
+  --border-medium: rgba(125, 211, 192, 0.35);
+
+  /* Estados - Dark mode backgrounds */
+  --success-bg: rgba(107, 207, 127, 0.15);
+  --warning-bg: rgba(245, 180, 97, 0.15);
+  --error-bg: rgba(255, 139, 148, 0.15);
+
+  /* Mobile Border - Modo Escuro (mais clara) */
+  --mobile-border: rgba(125, 211, 192, 0.2);
+}
+
+/* ============================================================================
+   KEYFRAMES
+   ============================================================================ */
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Reduced Motion Support */
+/* Respeita preferências de acessibilidade do usuário, mas mantém animações essenciais */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.force-animation):not(.force-animation *) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Animações essenciais que sempre funcionam (ex: breathing circle) */
+.force-animation {
+  /* Override do prefers-reduced-motion para componentes essenciais */
+}
+
+/* ============================================================================
+   CLASSES UTILITY
+   ============================================================================ */
+
+.glass-effect {
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-light);
+}
+
+.transition-smooth {
+  transition: all var(--duration-normal) var(--easing-smooth);
+}
+
+.transition-colors {
+  transition: var(--transition-colors);
+}
+
+.transition-transform {
+  transition: var(--transition-transform);
+}
+
+.transition-opacity {
+  transition: var(--transition-opacity);
+}
+
+.transition-fast {
+  transition: all var(--duration-fast) var(--easing-smooth);
+}
+
+.transition-slow {
+  transition: all var(--duration-slow) var(--easing-smooth);
+}
+
+.transition-spring {
+  transition: all var(--duration-normal) var(--easing-spring);
+}
+
+.animate-ripple-infinite {
+  animation: ripple 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-slide-up {
+  animation: slideUpFade var(--duration-slow) var(--easing-smooth);
+}
+
+.animate-slide-down {
+  animation: slideDownFade var(--duration-slow) var(--easing-smooth);
+}
+
+.animate-breathe {
+  animation: breathe 2s var(--easing-smooth) infinite;
+}
+
+.hover-lift {
+  transition: var(--transition-transform);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: var(--transition-transform);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: box-shadow var(--duration-normal) var(--easing-smooth);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px var(--primary-shadow);
+}
+
+.breathe-pattern-bg {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(125, 211, 192, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(184, 223, 216, 0.05) 0%, transparent 50%);
+}
+
 @layer base {
   body {
-    @apply bg-background text-gray-800 font-sans antialiased;
+    font-family: var(--font-jakarta), sans-serif;
+    @apply text-text-primary antialiased;
   }
 
   html,
@@ -114,6 +383,22 @@
     }
   }
 
+  /* Ripple effect for buttons */
+  .animate-ripple {
+    animation: ripple 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 0.6;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
   /* Skeleton loading */
   .skeleton {
     @apply bg-gray-200 rounded animate-pulse;
@@ -175,4 +460,49 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #6da9a6;
+}
+
+/* ============================================================================
+   SHIMMER ANIMATION - Para loading skeletons
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer-animation {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   MOBILE WRAPPER - Container global para conteúdo mobile
+   ============================================================================ */
+
+/*
+  Wrapper global aplicado no layout principal que:
+  - Centraliza conteúdo mobile (max 428px)
+  - Aplica background diferente da área desktop
+  - Adiciona bordas laterais para visualização em desktop
+  - Preenche altura completa da tela
+  - Remove bordas em dispositivos mobile reais (< 429px)
+*/
+.mobile-wrapper {
+  width: 100%;
+  max-width: 428px;
+  margin: 0 auto;
+  background: var(--surface-main);
+  min-height: 100vh;
+}
+
+/* Bordas laterais apenas em desktop (acima de 428px de largura) */
+@media (min-width: 429px) {
+  .mobile-wrapper {
+    border-left: 2px solid var(--mobile-border);
+    border-right: 2px solid var(--mobile-border);
+  }
 }

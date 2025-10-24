@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Clock, MapPin, StickyNote } from 'lucide-react';
+import { OptimizedIcon } from '@/components/ui/OptimizedIcon';
+import { CaretDown, CaretUp, Clock, MapPin, Note } from '@/lib/constants/icons';
 import { Card } from '@/components/ui/Card';
 import {
   CRISIS_DURATION_OPTIONS,
@@ -66,14 +67,14 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
         className="flex w-full items-center justify-between text-left"
       >
         <div>
-          <p className="text-xs font-semibold uppercase text-gray-400">{datePart}</p>
+          <p className="text-xs font-semibold uppercase text-text-tertiary">{datePart}</p>
           <div className="mt-1 flex items-center gap-3">
             <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${intensity.badge}`}>
               <span className="h-2 w-2 rounded-full bg-current" />
               {intensity.label}
             </span>
-            <span className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="h-3 w-3" />
+            <span className="flex items-center gap-1 text-xs text-text-tertiary">
+              <OptimizedIcon icon={Clock} size={12} weight="bold" />
               {timePart}
             </span>
           </div>
@@ -89,7 +90,11 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
           </div>
         </div>
         <div className="ml-4 text-primary">
-          {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          {isOpen ? (
+            <OptimizedIcon icon={CaretUp} size={20} weight="bold" />
+          ) : (
+            <OptimizedIcon icon={CaretDown} size={20} weight="bold" />
+          )}
         </div>
       </button>
 
@@ -99,11 +104,11 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="space-y-4 overflow-hidden text-sm text-gray-600"
+            className="space-y-4 overflow-hidden text-sm text-text-secondary"
           >
-            <div className="grid gap-3 rounded-2xl bg-surface px-4 py-3 text-gray-700">
+            <div className="grid gap-3 rounded-2xl bg-[var(--surface-card)] px-4 py-3 text-text-secondary">
               <div>
-                <p className="text-xs font-semibold uppercase text-gray-400">
+                <p className="text-xs font-semibold uppercase text-text-tertiary">
                   Duracao
                 </p>
                 <p className="text-sm">
@@ -112,7 +117,7 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase text-gray-400">
+                <p className="text-xs font-semibold uppercase text-text-tertiary">
                   O que ajudou
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -129,11 +134,11 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
 
               {crisis.additionalNotes && (
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-400">
+                  <p className="text-xs font-semibold uppercase text-text-tertiary">
                     Notas
                   </p>
-                  <p className="mt-1 inline-flex items-start gap-2 text-sm text-gray-600">
-                    <StickyNote className="mt-[2px] h-4 w-4 text-primary" />
+                  <p className="mt-1 inline-flex items-start gap-2 text-sm text-text-secondary">
+                    <OptimizedIcon icon={Note} size={16} weight="duotone" className="mt-[2px] text-primary" />
                     {crisis.additionalNotes}
                   </p>
                 </div>
@@ -141,7 +146,7 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
 
               {crisis.triggers && crisis.triggers.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold uppercase text-gray-400">
+                  <p className="text-xs font-semibold uppercase text-text-tertiary">
                     Gatilhos
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -158,10 +163,10 @@ export function CrisisCard({ crisis, defaultExpanded = false }: CrisisCardProps)
               )}
 
               {crisis.location && (
-                <div className="flex items-start gap-2 text-sm text-gray-600">
-                  <MapPin className="mt-[2px] h-4 w-4 text-primary" />
+                <div className="flex items-start gap-2 text-sm text-text-secondary">
+                  <OptimizedIcon icon={MapPin} size={16} weight="duotone" className="mt-[2px] text-primary" />
                   <div>
-                    <p className="text-xs font-semibold uppercase text-gray-400">
+                    <p className="text-xs font-semibold uppercase text-text-tertiary">
                       Local
                     </p>
                     <p className="mt-1 text-sm">{crisis.location}</p>
