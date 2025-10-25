@@ -87,8 +87,8 @@ const config: Config = {
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         ripple: {
-          '0%': { transform: 'scale(0)', opacity: '0.6' },
-          '100%': { transform: 'scale(2)', opacity: '0' },
+          '0%': { transform: 'translate(-50%, -50%) scale(0) translateZ(0)', opacity: '0.7' },
+          '100%': { transform: 'translate(-50%, -50%) scale(1) translateZ(0)', opacity: '0' },
         },
         breathe: {
           '0%, 100%': { transform: 'scale(1)' },

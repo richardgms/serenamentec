@@ -10,7 +10,7 @@ import { motion } from 'framer-motion'
 
 export function Header() {
   const { theme, setTheme, resolvedTheme } = useTheme()
-  const { user } = useUser()
+  const { user, isLoading } = useUser()
   const router = useRouter()
 
   const toggleTheme = () => {
@@ -25,6 +25,7 @@ export function Header() {
           onClick={() => router.push('/profile')}
           className="transition-transform duration-150 hover:scale-105 active:scale-95"
           aria-label="Ir para perfil"
+          disabled={isLoading}
         >
           <Avatar
             src={user?.profilePicture || undefined}

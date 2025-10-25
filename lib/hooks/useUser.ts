@@ -37,6 +37,7 @@ export function useUser(): UseUserReturn {
       console.log('❌ [useUser] User not signed in or no clerk ID, clearing state');
       setAppUser(null);
       setIsLoading(false);
+      setError(null); // Clear error when not signed in
       return;
     }
 
@@ -50,6 +51,7 @@ export function useUser(): UseUserReturn {
           // User doesn't exist in our database yet
           console.log('⚠️ [useUser] User not found in database (404)');
           setAppUser(null);
+          setError(null); // 404 is not an error state
           return;
         }
         throw new Error('Failed to fetch user data');
@@ -61,6 +63,7 @@ export function useUser(): UseUserReturn {
       setError(null);
     } catch (err) {
       console.error('❌ [useUser] Error fetching user:', err);
+      // Don't throw error, just set error state
       setError(err as Error);
       setAppUser(null);
     } finally {

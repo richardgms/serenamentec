@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, ButtonHTMLAttributes, MouseEvent, useState, useCallback } from 'react'
+import { forwardRef, ButtonHTMLAttributes, MouseEvent, useCallback } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { clsx } from 'clsx'
 
@@ -28,13 +28,6 @@ const buttonVariants = cva(
   }
 )
 
-interface Ripple {
-  x: number
-  y: number
-  size: number
-  id: number
-}
-
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
@@ -59,28 +52,45 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     onClick,
     ...props
   }, ref) => {
-    const [ripples, setRipples] = useState<Ripple[]>([])
-
     const createRipple = useCallback((event: MouseEvent<HTMLButtonElement>) => {
       const button = event.currentTarget
-      const rect = button.getBoundingClientRect()
-      const size = Math.max(rect.width, rect.height)
-      const x = event.clientX - rect.left - size / 2
-      const y = event.clientY - rect.top - size / 2
-
-      const newRipple: Ripple = {
-        x,
-        y,
-        size,
-        id: Date.now(),
+      
+      // Limit concurrent ripples for performance
+      const existingRipples = button.querySelectorAll('.button-ripple')
+      if (existingRipples.length >= 3) {
+        existingRipples[0].remove()
       }
+      
+      const rect = button.getBoundingClientRect()
+      const size = Math.max(rect.width, rect.height) * 2.5
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
 
-      setRipples((prev) => [...prev, newRipple])
+      // Create ripple element
+      const ripple = document.createElement('span')
+      ripple.className = 'button-ripple'
+      ripple.style.cssText = `
+        position: absolute;
+        left: ${x}px;
+        top: ${y}px;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+        pointer-events: none;
+      `
+      
+      button.appendChild(ripple)
+      
+      // Start animation on next frame for smooth performance
+      requestAnimationFrame(() => {
+        ripple.style.animation = 'ripple 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards'
+      })
 
-      // Remove ripple after animation
+      // Remove after animation
       setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id))
-      }, 600)
+        ripple.remove()
+      }, 550)
     }, [])
 
     const handleClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
@@ -122,20 +132,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             children
           )}
         </span>
-
-        {/* Ripple effects */}
-        {enableRipple && ripples.map((ripple) => (
-          <span
-            key={ripple.id}
-            className="absolute rounded-full bg-white/30 animate-ripple pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              width: ripple.size,
-              height: ripple.size,
-            }}
-          />
-        ))}
       </button>
     )
   }

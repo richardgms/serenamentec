@@ -1,13 +1,12 @@
 /**
  * Ripple Button Component
  * Botão com efeito ripple (Material Design) e haptic feedback
+ * Otimizado com CSS puro para máxima performance
  */
 
 'use client';
 
-import { ReactNode, ButtonHTMLAttributes, useState, MouseEvent } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { rippleVariants } from '@/lib/animations/variants';
+import { ReactNode, ButtonHTMLAttributes, MouseEvent } from 'react';
 import { useHaptic } from '@/lib/hooks/useHaptic';
 
 interface RippleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,12 +16,6 @@ interface RippleButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
   enableHaptic?: boolean;
   rippleColor?: string;
-}
-
-interface Ripple {
-  id: number;
-  x: number;
-  y: number;
 }
 
 export function RippleButton({
@@ -37,7 +30,6 @@ export function RippleButton({
   onClick,
   ...props
 }: RippleButtonProps) {
-  const [ripples, setRipples] = useState<Ripple[]>([]);
   const { selection } = useHaptic();
 
   const baseStyles =
@@ -68,24 +60,49 @@ export function RippleButton({
   const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
     if (disabled) return;
 
-    // Create ripple
     const button = e.currentTarget;
+    
+    // Limit concurrent ripples to 3 for performance
+    const existingRipples = button.querySelectorAll('.ripple-effect');
+    if (existingRipples.length >= 3) {
+      existingRipples[0].remove();
+    }
+    
     const rect = button.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    const newRipple: Ripple = {
-      id: Date.now(),
-      x,
-      y,
-    };
+    // Calculate ripple size to cover entire button
+    const size = Math.max(rect.width, rect.height) * 2;
+    
+    // Create ripple element
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple-effect';
+    ripple.style.cssText = `
+      position: absolute;
+      left: ${x}px;
+      top: ${y}px;
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      background-color: ${rippleColor || defaultRippleColors[variant]};
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0) translateZ(0);
+      opacity: 0.7;
+      will-change: transform, opacity;
+      animation: ripple 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    `;
+    
+    // Add to button
+    button.appendChild(ripple);
 
-    setRipples((prev) => [...prev, newRipple]);
-
-    // Remove ripple after animation
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-    }, 600);
+    // Remove after animation
+    const timeout = setTimeout(() => {
+      ripple.remove();
+    }, 650);
+    
+    // Store timeout so it can be cleared if needed
+    ripple.setAttribute('data-timeout', String(timeout));
 
     // Haptic feedback
     if (enableHaptic) {
@@ -107,27 +124,6 @@ export function RippleButton({
     >
       {/* Content */}
       <span className="relative z-10">{children}</span>
-
-      {/* Ripples */}
-      <AnimatePresence>
-        {ripples.map((ripple) => (
-          <motion.span
-            key={ripple.id}
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              width: 0,
-              height: 0,
-              backgroundColor: rippleColor || defaultRippleColors[variant],
-            }}
-            variants={rippleVariants}
-            initial="initial"
-            animate="animate"
-            exit={{ opacity: 0 }}
-          />
-        ))}
-      </AnimatePresence>
     </button>
   );
 }
